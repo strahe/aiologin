@@ -6,3 +6,5 @@ settings.ini
 ### Folders ###
 ###############
 .idea/
+aiologin.egg-info/
+dist/
