@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractproperty
 from collections.abc import MutableMapping
 from aiohttp import web
 
@@ -23,38 +23,33 @@ class AbstractUser(MutableMapping, metaclass=ABCMeta):
     def __delitem__(self, key):
         delattr(self, key)
 
-    @abstractmethod
-    def is_authenticated(self):
+    @abstractproperty
+    def authenticated(self):
         return
 
-    @abstractmethod
-    def is_forbidden(self):
+    @abstractproperty
+    def forbidden(self):
         return
-
-        # @abstractmethod
-        # def get_id(self):
-        #     return
 
 
 class AnonymousUser(AbstractUser):
-    def is_authenticated(self):
+    @property
+    def authenticated(self):
         return False
 
-    def is_forbidden(self):
+    @property
+    def forbidden(self):
         return False
-
-        # def get_id(self):
-        #     return None
 
 
 # noinspection PyUnusedLocal
 async def _unauthorized(request):
-    return web.Response(status=401)
+    return web.Response(status=401, body=b'Unauthorized')
 
 
 # noinspection PyUnusedLocal
 async def _forbidden(request):
-    return web.Response(status=403)
+    return web.Response(status=403, body=b'Forbidden')
 
 
 class AioLogin:
@@ -68,8 +63,8 @@ class AioLogin:
         self._default_user = default_user
         self._anonymous_user = anonymous_user
 
-        self._forbidden = forbidden
         self._unauthorized = unauthorized
+        self._forbidden = forbidden
 
     async def login(self, user):
         assert isinstance(user, AbstractUser), \
@@ -80,6 +75,16 @@ class AioLogin:
     async def logout(self):
         session = await get_session(self._request)
         del session[self._key]
+
+    async def current_user(self):
+        session = await get_session(self._request)
+        user_info = session.get(AIOLOGIN_KEY, None)
+        if user_info is None:
+            user = self.anonymous_user()
+        else:
+            user = self.default_user(**user_info)
+
+        return user
 
     @property
     def disabled(self):
@@ -92,6 +97,14 @@ class AioLogin:
     @property
     def anonymous_user(self):
         return self._anonymous_user
+
+    @property
+    def unauthorized(self):
+        return self._unauthorized
+
+    @property
+    def forbidden(self):
+        return self._forbidden
 
 
 def setup(app, default_user, **kwargs):
@@ -114,18 +127,13 @@ def aiologin_middleware_factory(**kwargs):
 
 def secured(func):
     async def wrapper(request):
-        session = await get_session(request)
-        user = session.get(AIOLOGIN_KEY, request.aiologin.anonymous_user())
-
+        cur_usr = await request.aiologin.current_user()
         if request.aiologin.disabled:
             return await func(request)
-
-        if not user.is_authenticated():
+        if not cur_usr.authenticated:
             return await request.aiologin.unauthorized(request)
-
-        if user.is_forbidden():
+        if cur_usr.forbidden:
             return await request.aiologin.forbidden(request)
-
         return await func(request)
 
     return wrapper

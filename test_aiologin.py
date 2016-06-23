@@ -9,24 +9,23 @@ import aiologin
 
 
 class User(aiologin.AbstractUser):
-    def __init__(self, uid):
-        self.uid = uid
+    @property
+    def authenticated(self):
+        return True
 
-    def is_authenticated(self):
-        pass
-
-    def is_forbidden(self):
-        pass
+    @property
+    def forbidden(self):
+        return False
 
 
 @aiologin.secured
 async def handler(request):
-    # print(aiologin.current_user)
+    print(await request.aiologin.current_user())
     return web.Response(body=b'OK')
 
 
 async def login(request):
-    await request.aiologin.login(User(45345))
+    await request.aiologin.login(User())
     return web.Response()
 
 
