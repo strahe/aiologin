@@ -38,13 +38,23 @@ class AbstractUser(MutableMapping, metaclass=ABCMeta):
 
 class AnonymousUser(AbstractUser):
     def is_authenticated(self):
-        return False
+        return True
 
     def is_forbidden(self):
-        return False
+        return True
 
         # def get_id(self):
         #     return None
+
+
+# noinspection PyUnusedLocal
+async def _unauthorized(request):
+    return web.Response(status=401)
+
+
+# noinspection PyUnusedLocal
+async def _forbidden(request):
+    return web.Response(status=403)
 
 
 class AioLogin:
@@ -90,8 +100,7 @@ def aiologin_middleware_factory(**kwargs):
 
 
 def secured(func):
-    async def wrapper(**kwargs):
-        request = kwargs['request']
+    async def wrapper(request):
         session = await get_session(request)
         user = session.get(AIOLOGIN_KEY, AnonymousUser())
 
@@ -101,19 +110,9 @@ def secured(func):
         if not user.is_authenticated():
             return await request.aiologin.unauthorized(request)
 
-        if not user.is_forbidden():
+        if user.is_forbidden():
             return await request.aiologin.forbidden(request)
 
         return await func(request)
 
     return wrapper
-
-
-# noinspection PyUnusedLocal
-async def _unauthorized(request):
-    web.Response(status=401)
-
-
-# noinspection PyUnusedLocal
-async def _forbidden(request):
-    web.Response(status=403)
