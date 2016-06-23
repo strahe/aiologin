@@ -1,7 +1,10 @@
+import asyncio
+import types
 from abc import ABCMeta, abstractproperty
 from collections.abc import MutableMapping
-from aiohttp import web
 
+from aiohttp import web
+from aiohttp.web_reqrep import Request
 from aiohttp_session import get_session
 
 AIOLOGIN_KEY = '__aiologin__'
@@ -43,41 +46,47 @@ class AnonymousUser(AbstractUser):
 
 
 # noinspection PyUnusedLocal
-async def _unauthorized(request):
+@asyncio.coroutine
+def _unauthorized(*args, **kwargs):
     return web.Response(status=401, body=b'Unauthorized')
 
 
 # noinspection PyUnusedLocal
-async def _forbidden(request):
+@asyncio.coroutine
+def _forbidden(*args, **kwargs):
     return web.Response(status=403, body=b'Forbidden')
 
 
 class AioLogin:
     def __init__(self, request, default_user, key=AIOLOGIN_KEY, disabled=False,
                  forbidden=_forbidden, unauthorized=_unauthorized,
-                 anonymous_user=AnonymousUser):
+                 anonymous_user=AnonymousUser, session=get_session):
         self._request = request
-        self._key = key
         self._disabled = disabled
+        self._key = key
 
         self._default_user = default_user
         self._anonymous_user = anonymous_user
 
+        self._session = session
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
-    async def login(self, user):
+    @asyncio.coroutine
+    def login(self, user):
         assert isinstance(user, AbstractUser), \
             "Expected 'AbstractUser' type but received {}".format(type(user))
-        session = await get_session(self._request)
+        session = yield from self._session(self._request)
         session[self._key] = dict(user)
 
-    async def logout(self):
-        session = await get_session(self._request)
+    @asyncio.coroutine
+    def logout(self):
+        session = yield from self._session(self._request)
         del session[self._key]
 
-    async def current_user(self):
-        session = await get_session(self._request)
+    @asyncio.coroutine
+    def current_user(self):
+        session = yield from self._session(self._request)
         user_info = session.get(AIOLOGIN_KEY, None)
         if user_info is None:
             user = self.anonymous_user()
@@ -108,17 +117,22 @@ class AioLogin:
 
 
 def setup(app, default_user, **kwargs):
-    app.middlewares.append(aiologin_middleware_factory(
+    app.middlewares.append(middleware_factory(
         default_user=default_user, **kwargs
     ))
 
 
-def aiologin_middleware_factory(**kwargs):
+def middleware_factory(**options):
     # noinspection PyUnusedLocal
-    async def aiologin_middleware(app, handler):
-        async def aiologin_handler(request):
-            request.aiologin = AioLogin(request, **kwargs)
-            return await handler(request)
+    @asyncio.coroutine
+    def aiologin_middleware(app, handler):
+        @asyncio.coroutine
+        def aiologin_handler(*args, **kwargs):
+            request = kwargs['request'] if 'request' in kwargs else args[0]
+            kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
+
+            request.aiologin = AioLogin(request=request, **options)
+            return (yield from handler(request=request, **kwargs))
 
         return aiologin_handler
 
@@ -126,14 +140,20 @@ def aiologin_middleware_factory(**kwargs):
 
 
 def secured(func):
-    async def wrapper(request):
-        cur_usr = await request.aiologin.current_user()
+    @asyncio.coroutine
+    def wrapper(*args, **kwargs):
+        request = kwargs['request'] if 'request' in kwargs else args[0]
+        kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
+        if not isinstance(request, Request):
+            request = args[0].request
+
+        cur_usr = yield from request.aiologin.current_user()
         if request.aiologin.disabled:
-            return await func(request)
+            return (yield from func(*args, **kwargs))
         if not cur_usr.authenticated:
-            return await request.aiologin.unauthorized(request)
+            return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if cur_usr.forbidden:
-            return await request.aiologin.forbidden(request)
-        return await func(request)
+            return (yield from request.aiologin.forbidden(*args, **kwargs))
+        return (yield from func(*args, **kwargs))
 
     return wrapper

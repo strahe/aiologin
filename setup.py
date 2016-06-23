@@ -3,8 +3,10 @@ from setuptools import setup, find_packages
 setup(
     name='aiologin',
     version='0.0.1',
-    description='sessions for aiohttp.web',
-    long_description='',
+    description='Project provides login management extension to aiohttp.web',
+    long_description='This module provides extension to the aiohttp_session '
+                     'and aiohttp.web projects by extending their '
+                     'functionality with this login management tool',
     url='https://github.com/trivigy/aiologin',
     license='MIT',
     author='Konstantin Itskov',
