@@ -63,6 +63,7 @@ except KeyboardInterrupt:
 - Stale user (required re-login) functionality
 - Authentication Key alternative
 - Long-term login functionality (Remember Me)
+- Publishing to pypi
 
 ## License
 MIT License
