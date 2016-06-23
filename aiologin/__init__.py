@@ -38,10 +38,10 @@ class AbstractUser(MutableMapping, metaclass=ABCMeta):
 
 class AnonymousUser(AbstractUser):
     def is_authenticated(self):
-        return True
+        return False
 
     def is_forbidden(self):
-        return True
+        return False
 
         # def get_id(self):
         #     return None
@@ -58,19 +58,22 @@ async def _forbidden(request):
 
 
 class AioLogin:
-    def __init__(self, request, key=AIOLOGIN_KEY, disabled=False,
-                 forbidden=_forbidden, unauthorized=_unauthorized):
+    def __init__(self, request, default_user, key=AIOLOGIN_KEY, disabled=False,
+                 forbidden=_forbidden, unauthorized=_unauthorized,
+                 anonymous_user=AnonymousUser):
         self._request = request
         self._key = key
         self._disabled = disabled
 
-        self.forbidden = forbidden
-        self.unauthorized = unauthorized
+        self._default_user = default_user
+        self._anonymous_user = anonymous_user
+
+        self._forbidden = forbidden
+        self._unauthorized = unauthorized
 
     async def login(self, user):
         assert isinstance(user, AbstractUser), \
-            "Expected 'AbstractUser' base type but received {!r}".format(
-                type(user))
+            "Expected 'AbstractUser' type but received {}".format(type(user))
         session = await get_session(self._request)
         session[self._key] = dict(user)
 
@@ -82,9 +85,19 @@ class AioLogin:
     def disabled(self):
         return self._disabled
 
+    @property
+    def default_user(self):
+        return self._default_user
 
-def setup(app, **kwargs):
-    app.middlewares.append(aiologin_middleware_factory(**kwargs))
+    @property
+    def anonymous_user(self):
+        return self._anonymous_user
+
+
+def setup(app, default_user, **kwargs):
+    app.middlewares.append(aiologin_middleware_factory(
+        default_user=default_user, **kwargs
+    ))
 
 
 def aiologin_middleware_factory(**kwargs):
@@ -102,7 +115,7 @@ def aiologin_middleware_factory(**kwargs):
 def secured(func):
     async def wrapper(request):
         session = await get_session(request)
-        user = session.get(AIOLOGIN_KEY, AnonymousUser())
+        user = session.get(AIOLOGIN_KEY, request.aiologin.anonymous_user())
 
         if request.aiologin.disabled:
             return await func(request)

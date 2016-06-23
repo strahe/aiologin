@@ -40,7 +40,7 @@ async def init(loop):
         session_middleware(SimpleCookieStorage())
     ])
 
-    aiologin.setup(app)
+    aiologin.setup(app, User)
 
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
