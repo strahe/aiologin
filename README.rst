@@ -1,5 +1,5 @@
 ========
-AioLogin
+Aiologin
 ========
 
 This module provides extension to the `aiohttp_session <http://aiohttp-session.readthedocs.io/en/latest>`_ and `aiohttp.web <https://aiohttp.readthedocs.io/en/latest/web.html>`_ projects by extending their functionality with this login management tool.
@@ -8,7 +8,6 @@ Usage
 -----
 
 .. code:: Python
-	:linenos:
 
 	import asyncio
 	from aiohttp import web
@@ -62,14 +61,14 @@ Usage
 TODOs
 -----
 
-	- Extended documentations
-	- Reworking the test file into a set of proper unittests
-	- Stale user (required re-login) functionality
-	- Authentication Key alternative
-	- Long-term login functionality (Remember Me)
-	- Publishing to pypi
+- Extended documentations
+- Reworking the test file into a set of proper unittests
+- Stale user (required re-login) functionality
+- Authentication Key alternative
+- Long-term login functionality (Remember Me)
+- Publishing to pypi
 
 License
 -------
 
-	MIT License
+MIT License
