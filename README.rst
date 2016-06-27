@@ -64,8 +64,6 @@ TODOs
 - Extended documentations
 - Reworking the test file into a set of proper unittests
 - Stale user (required re-login) functionality
-- Authentication Key alternative
-- Long-term login functionality (Remember Me)
 - Publishing to pypi
 
 License

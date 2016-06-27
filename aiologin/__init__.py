@@ -1,5 +1,4 @@
 import asyncio
-import types
 from abc import ABCMeta, abstractproperty
 from collections.abc import MutableMapping
 
@@ -28,11 +27,11 @@ class AbstractUser(MutableMapping, metaclass=ABCMeta):
 
     @abstractproperty
     def authenticated(self):
-        return
+        raise NotImplemented()
 
     @abstractproperty
     def forbidden(self):
-        return
+        raise NotImplemented()
 
 
 class AnonymousUser(AbstractUser):
@@ -57,55 +56,72 @@ def _forbidden(*args, **kwargs):
     return web.Response(status=403, body=b'Forbidden')
 
 
+# noinspection PyUnusedLocal
+@asyncio.coroutine
+def _void(*args, **kwargs):
+    raise NotImplemented()
+
+
 class AioLogin:
-    def __init__(self, request, default_user, key=AIOLOGIN_KEY, disabled=False,
+    def __init__(self, request, session_name=AIOLOGIN_KEY, disabled=False,
+                 auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
                  anonymous_user=AnonymousUser, session=get_session):
         self._request = request
         self._disabled = disabled
-        self._key = key
+        self._session_name = session_name
 
-        self._default_user = default_user
         self._anonymous_user = anonymous_user
-
         self._session = session
+
+        self._auth_by_header = auth_by_header
+        self._auth_by_session = auth_by_session
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
     @asyncio.coroutine
-    def login(self, user):
+    def login(self, user, remember):
         assert isinstance(user, AbstractUser), \
-            "Expected 'AbstractUser' type but received {}".format(type(user))
+            "Expected 'AbstractUser' for {} type but received {}".format(
+                user, type(user)
+            )
+        assert isinstance(remember, bool), \
+            "Expected 'bool' type for {} but received {}".format(
+                remember, type(remember)
+            )
         session = yield from self._session(self._request)
-        session[self._key] = dict(user)
+        session['remember'] = remember
+        session[self._session_name] = dict(user)
 
     @asyncio.coroutine
     def logout(self):
         session = yield from self._session(self._request)
-        del session[self._key]
+        session.invalidate()
 
     @asyncio.coroutine
-    def current_user(self):
-        session = yield from self._session(self._request)
-        user_info = session.get(AIOLOGIN_KEY, None)
-        if user_info is None:
-            user = self.anonymous_user()
-        else:
-            user = self.default_user(**user_info)
+    def auth_by_header(self):
+        key = self._request.headers.get('AUTHORIZATION', None)
+        if key is None:
+            return None
+        return (yield from self._auth_by_header(self._request, key))
 
+    @asyncio.coroutine
+    def auth_by_session(self):
+        session = yield from self._session(self._request)
+        profile = session.get(self._session_name, None)
+        if profile is None:
+            return None
+
+        user = yield from self._auth_by_session(self._request, profile)
+        if user is None:
+            return None
+
+        session.changed()
         return user
 
     @property
     def disabled(self):
         return self._disabled
-
-    @property
-    def default_user(self):
-        return self._default_user
-
-    @property
-    def anonymous_user(self):
-        return self._anonymous_user
 
     @property
     def unauthorized(self):
@@ -115,11 +131,13 @@ class AioLogin:
     def forbidden(self):
         return self._forbidden
 
+    @property
+    def anonymous_user(self):
+        return self._anonymous_user
 
-def setup(app, default_user, **kwargs):
-    app.middlewares.append(middleware_factory(
-        default_user=default_user, **kwargs
-    ))
+
+def setup(app, **kwargs):
+    app.middlewares.append(middleware_factory(**kwargs))
 
 
 def middleware_factory(**options):
@@ -131,7 +149,8 @@ def middleware_factory(**options):
             request = kwargs['request'] if 'request' in kwargs else args[0]
             kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
 
-            request.aiologin = AioLogin(request=request, **options)
+            manager = options.get('manager', AioLogin)
+            request.aiologin = manager(request=request, **options)
             return (yield from handler(request=request, **kwargs))
 
         return aiologin_handler
@@ -146,14 +165,27 @@ def secured(func):
         kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
         if not isinstance(request, Request):
             request = args[0].request
+        else:
+            args = (request,) + args
 
-        cur_usr = yield from request.aiologin.current_user()
         if request.aiologin.disabled:
             return (yield from func(*args, **kwargs))
-        if not cur_usr.authenticated:
+
+        user = yield from request.aiologin.auth_by_header()
+        if user is None:
+            user = yield from request.aiologin.auth_by_session()
+        if user is None:
+            user = request.aiologin.anonymous_user()
+
+        assert isinstance(user, AbstractUser), \
+            "Expected 'user' of type AbstractUser by got {}".format(type(user))
+
+        if not user.authenticated:
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
-        if cur_usr.forbidden:
+        if user.forbidden:
             return (yield from request.aiologin.forbidden(*args, **kwargs))
+
+        request.current_user = user
         return (yield from func(*args, **kwargs))
 
     return wrapper
