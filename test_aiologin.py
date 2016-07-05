@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import unittest
 import asyncio
 from urllib.parse import parse_qs
 
@@ -9,7 +10,7 @@ from aiohttp_session import session_middleware, SimpleCookieStorage
 import aiologin
 
 
-class User(aiologin.AbstractUser):
+class User(unittest.TestCase, aiologin.AbstractUser):
     def __init__(self, email, password):
         self.email = email
         self.password = password
@@ -85,3 +86,6 @@ try:
     loop.run_forever()
 except KeyboardInterrupt:
     pass
+
+if __name__ == '__main__':
+    unittest.main()
