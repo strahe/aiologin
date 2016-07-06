@@ -159,7 +159,7 @@ as follows:
 
 TODOs
 -----
-
+- Working unittests
 - Extended documentations
 - Reworking the test file into a set of proper unittests
 - Stale user (required re-login) functionality
