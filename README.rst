@@ -17,6 +17,7 @@ store your users session's information. The begging of the server file as well
 as the User class should minimally look like this:
 
 .. code:: Python
+
     #!/usr/bin/python3
 
     import asyncio
