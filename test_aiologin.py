@@ -69,30 +69,27 @@ async def logout(request):
     await request.aiologin.logout()
     return web.Response()
 
-
-# noinspection PyShadowingNames
-async def init(loop):
-    print("in the init method")
-    app = web.Application(middlewares=[
-        session_middleware(SimpleCookieStorage())
+app = web.Application(middlewares=[
+    session_middleware(SimpleCookieStorage())
     ])
-    aiologin.setup(
-        app=app,
-        auth_by_header=auth_by_header,
-        auth_by_session=auth_by_session
+aiologin.setup(
+    app=app, auth_by_header=auth_by_header,auth_by_session=auth_by_session
     )
 
-    app.router.add_route('GET', '/', handler)
-    app.router.add_route('GET', '/login', login)
-    app.router.add_route('GET', '/logout', logout)
+app.router.add_route('GET', '/', handler)
+app.router.add_route('GET', '/login', login)
+app.router.add_route('GET', '/logout', logout)
+
+# noinspection PyShadowingNames
+async def init(loop, app):
     srv = await loop.create_server(
         app.make_handler(), '0.0.0.0', 8080)
     print("init is done, loop has been created with all the routes")
     return srv
 
-
 loop = asyncio.get_event_loop()
-loop.run_until_complete(init(loop))
+loop.run_until_complete(init(loop, app))
+
 try:
     print("run forever loop is about to start, so the init is done")
     print("")

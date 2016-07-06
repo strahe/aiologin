@@ -103,10 +103,10 @@ one for the home route that is secured so only a logged in user could access it.
 
 More Setup, Creating Your Web App and Adding Routes To It 
 -----
-Now you need to create your web app that will contain your routes
-as well as your middleware that you can add at your own discretion.
-What you will defininitly need to add is the session_middleware with
-the SimpleCookieStorage class passed in. See the example below
+Now you need to create your web app that will contain your routes as well as
+your middleware that you can add at your own discretion. What you will
+definitely need to add is the session_middleware with the SimpleCookieStorage
+class passed in. See the example below
 
 .. code:: Python
 
@@ -114,9 +114,9 @@ the SimpleCookieStorage class passed in. See the example below
             session_middleware(SimpleCookieStorage())
         ])
         
-Once you defined your web app, add it to the aiologin class via it's
-setup method, as well as pointers to your auth_by_header and 
-auth_by_session methods. See the example below 
+Once you defined your web app, add it to the aiologin class via it's setup
+method, as well as pointers to your auth_by_header and auth_by_session methods.
+See the example below
 
 .. code:: Python
 
@@ -126,9 +126,9 @@ auth_by_session methods. See the example below
         auth_by_session=auth_by_session
     )
 
-One last step before starting your server is to add your routes. 
-For that all you need to do is manually add your routes with thier
-respective handler methods. See the example below 
+One last step before starting your server is to add your routes. For that all
+you need to do is manually add your routes with thier respective handler
+methods. See the example below
 
 .. code:: Python
 
@@ -139,19 +139,19 @@ respective handler methods. See the example below
 
 Last Steps, Creating and Starting Your Event Loop
 -----
-Once evething is set up, we create our async server via 
-a async method that will create and run our server for as
-long as we need. the code for that looks as follows:
+Once everything is set up, we create our async server via a async method that
+will create and run our server for as long as we need. the code for that looks
+as follows:
 
 .. code:: Python
 
-    async def init(loop):
+    async def init(loop,app):
         srv = await loop.create_server(
             app.make_handler(), '0.0.0.0', 8080)
         return srv
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(init(loop))
+    loop.run_until_complete(init(loop,app))
     try:
         loop.run_forever()
     except KeyboardInterrupt:
