@@ -65,7 +65,7 @@ header and session.
         return TestUser('Test@User.com', 'foobar')
     return None
 
-async def auth_by_session(request, profile):
+    async def auth_by_session(request, profile):
     print("inside the auth_by_session method")
     if 'email' in profile and profile['email'] == 'trivigy@gmail.com' and \
             'password' in profile and profile['password'] == 'blueberry':
