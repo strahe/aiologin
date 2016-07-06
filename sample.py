@@ -50,7 +50,8 @@ async def login(request):
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:
         raise web.HTTPUnauthorized
-    await request.aiologin.login(user)
+    # remember is false you should add your own functionality
+    await request.aiologin.login(user, remember=False)
     return web.Response()
 
 
@@ -58,30 +59,28 @@ async def logout(request):
     await request.aiologin.logout()
     return web.Response()
 
-
-# noinspection PyShadowingNames
-async def init(loop):
-    app = web.Application(middlewares=[
-        session_middleware(SimpleCookieStorage())
+app = web.Application(middlewares=[
+    session_middleware(SimpleCookieStorage())
     ])
-
-    aiologin.setup(
-        app=app,
-        auth_by_header=auth_by_header,
-        auth_by_session=auth_by_session
+aiologin.setup(
+    app=app, auth_by_header=auth_by_header,auth_by_session=auth_by_session
     )
 
-    app.router.add_route('GET', '/', handler)
-    app.router.add_route('GET', '/login', login)
-    app.router.add_route('GET', '/logout', logout)
+app.router.add_route('GET', '/', handler)
+app.router.add_route('GET', '/login', login)
+app.router.add_route('GET', '/logout', logout)
+
+# noinspection PyShadowingNames
+async def init(loop, app):
     srv = await loop.create_server(
         app.make_handler(), '0.0.0.0', 8080)
     return srv
 
-
 loop = asyncio.get_event_loop()
-loop.run_until_complete(init(loop))
+loop.run_until_complete(init(loop, app))
+
 try:
     loop.run_forever()
 except KeyboardInterrupt:
     pass
+
