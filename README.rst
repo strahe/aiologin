@@ -15,7 +15,7 @@ The first thing you are going to want to do is create your server.py file.
 Inside that file you are going to want to define your user class which is needed
 store your users session's information. The begging of the server file as well
 as the User class should minimally look like this:
-.. code:: Python
+    .. code:: Python
     #!/usr/bin/python3
 
     import asyncio
@@ -53,7 +53,7 @@ and one for a Logout route.
 Additionally, you should define the auth_by_header and auth_by_session methods,
 that will be passed into the aiologin class. These two authorization methods
 should return a User object. Below are two example authentication methods for
-header and session. 
+header and session.
 
 .. code:: Python
     async def auth_by_header(request, key):
