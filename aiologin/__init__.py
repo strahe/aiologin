@@ -80,17 +80,18 @@ class AioLogin:
         self._forbidden = forbidden
 
     @asyncio.coroutine
-    def login(self, user, remember):
+    # removed the remember variable, to be put back later
+    def login(self, user):
         assert isinstance(user, AbstractUser), \
             "Expected 'AbstractUser' for {} type but received {}".format(
                 user, type(user)
             )
-        assert isinstance(remember, bool), \
-            "Expected 'bool' type for {} but received {}".format(
-                remember, type(remember)
-            )
+        # assert isinstance(remember, bool), \
+        #     "Expected 'bool' type for {} but received {}".format(
+        #         remember, type(remember)
+        #     )
         session = yield from self._session(self._request)
-        session['remember'] = remember
+        # session['remember'] = remember
         session[self._session_name] = dict(user)
 
     @asyncio.coroutine
@@ -161,6 +162,7 @@ def middleware_factory(**options):
 def secured(func):
     @asyncio.coroutine
     def wrapper(*args, **kwargs):
+        print("the wrapper in the secured method in the __in__.py has fired")
         request = kwargs['request'] if 'request' in kwargs else args[0]
         kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
         if not isinstance(request, Request):

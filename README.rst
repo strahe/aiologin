@@ -2,7 +2,10 @@
 Aiologin
 ========
 
-This module provides extension to the `aiohttp_session <http://aiohttp-session.readthedocs.io/en/latest>`_ and `aiohttp.web <https://aiohttp.readthedocs.io/en/latest/web.html>`_ projects by extending their functionality with this login management tool.
+This module provides extension to the `aiohttp_session <http://aiohttp-session.
+readthedocs.io/en/latest>`_ and `aiohttp.web <https://aiohttp.readthedocs.io/en/
+latest/web.html>`_ projects by extending their functionality with this login
+management tool.
 
 Usage
 -----
