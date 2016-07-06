@@ -42,6 +42,8 @@ as the User class should minimally look like this:
 and define its authenticated and forbidden properties inside the user class. If
 these conditions are not met the module with throw executions.
 
+Further Setup
+-----
 Once your User class has be created you now should create your handler and
 authentication methods that your server will use to handle the routes you will
 add later. See the sample below for some example handler and authentication
@@ -49,9 +51,27 @@ methods. At the very least you should create two handlers one for a Login route
 and one for a Logout route.
 
 Additionally, you should define the auth_by_header and auth_by_session methods,
-that will be passed into the aiologin class. Furthermore, whatever handlers you
-want to be secured should have the @aiologin.secured decorator before it. This
-will create a wrapper for your handler that will create a user based
+that will be passed into the aiologin class. These two authorization methods
+should return a User object. Below are two example authentication methods for
+header and session. 
+
+.. code:: Python
+    async def auth_by_header(request, key):
+    print("inside the auth_by_header method")
+    if key == '1234567890':
+        return TestUser('Test@User.com', 'foobar')
+    return None
+
+async def auth_by_session(request, profile):
+    print("inside the auth_by_session method")
+    if 'email' in profile and profile['email'] == 'trivigy@gmail.com' and \
+            'password' in profile and profile['password'] == 'blueberry':
+        return TestUser(profile['email'], profile['password'])
+    return None
+
+Furthermore, whatever handlers you want to be secured should have the
+@aiologin.secured decorator before it. This will create a wrapper for your
+handler that will create a user based on the
 
 Usage
 -----
