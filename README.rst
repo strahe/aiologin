@@ -38,15 +38,20 @@ as the User class should minimally look like this:
     @property
     def forbidden(self):
         return False
-Note that the User class **MUST** inherit from aiologin.AbstractUser
-and define its authenticated and forbidden properties inside the user class.
+*Note* The User class should inherit from aiologin.AbstractUser
+and define its authenticated and forbidden properties inside the user class. If
+these conditions are not met the module with throw executions.
 
 Once your User class has be created you now should create your handler and
 authentication methods that your server will use to handle the routes you will
-add later. See the sample below from some example handlers and authentication
-methods. At the very least you should create two routes, Login and Logout.
-Additionally, you should define the auth_by_header and auth_by_session methods
-in the aiologin class.
+add later. See the sample below for some example handler and authentication
+methods. At the very least you should create two handlers one for a Login route
+and one for a Logout route.
+
+Additionally, you should define the auth_by_header and auth_by_session methods,
+that will be passed into the aiologin class. Furthermore, whatever handlers you
+want to be secured should have the @aiologin.secured decorator before it. This
+will create a wrapper for your handler that will create a user based
 
 Usage
 -----
@@ -93,6 +98,7 @@ TODOs
 - Extended documentations
 - Reworking the test file into a set of proper unittests
 - Stale user (required re-login) functionality
+- Signaling
 - Publishing to pypi
 
 License

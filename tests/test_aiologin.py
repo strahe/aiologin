@@ -43,7 +43,8 @@ async def auth_by_session(request, profile):
             'password' in profile and profile['password'] == 'blueberry':
         return TestUser(profile['email'], profile['password'])
     return None
-
+# this method is not required by the aiologin class, however you might want to
+# use a method like this to authenticate your user
 async def auth_by_form(request, email, password):
     print("inside the auth_by_forum method")
     if email == 'trivigy@gmail.com' and password == 'blueberry':
