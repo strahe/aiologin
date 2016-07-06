@@ -16,28 +16,28 @@ Inside that file you are going to want to define your user class which is needed
 store your users session's information. The begging of the server file as well
 as the User class should minimally look like this:
     .. code:: Python
-    #!/usr/bin/python3
+        #!/usr/bin/python3
 
-    import asyncio
-    from urllib.parse import parse_qs
+        import asyncio
+        from urllib.parse import parse_qs
 
-    from aiohttp import web
-    from aiohttp_session import session_middleware, SimpleCookieStorage
+        from aiohttp import web
+        from aiohttp_session import session_middleware, SimpleCookieStorage
 
-    import aiologin
-    class User(aiologin.AbstractUser):
-    def __init__(self, email, password):
-        print("user class made")
-        self.email = email
-        self.password = password
+        import aiologin
+        class User(aiologin.AbstractUser):
+        def __init__(self, email, password):
+            print("user class made")
+            self.email = email
+            self.password = password
 
-    @property
-    def authenticated(self):
-        return True
+        @property
+        def authenticated(self):
+            return True
 
-    @property
-    def forbidden(self):
-        return False
+        @property
+        def forbidden(self):
+            return False
 *Note* The User class should inherit from aiologin.AbstractUser
 and define its authenticated and forbidden properties inside the user class. If
 these conditions are not met the module with throw executions.
