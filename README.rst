@@ -58,6 +58,7 @@ should return a User object. Below are two example authentication methods for
 header and session.
 
 .. code:: Python
+
     async def auth_by_header(request, key):
     print("inside the auth_by_header method")
     if key == '1234567890':
@@ -79,6 +80,7 @@ Usage
 -----
 
 .. code:: Python
+
     @aiologin.secured
     async def handler(request):
         print(await request.aiologin.current_user())
