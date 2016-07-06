@@ -8,6 +8,14 @@ latest/web.html>`_ projects by extending their functionality with this login
 management tool. The style of this login management module was greatly inspired
 by the flask-login module.
 
+Disclaimer
+-----
+This module expects that you have a working understanding of the aiohttp and
+aiohttp_session modules. Links to the tutorials for those are:
+http://aiohttp.readthedocs.io/en/stable/ and
+http://aiohttp-session.readthedocs.io/en/latest/. Additionally, this module uses
+aiohttp.test_utils which is currently only available in the latest version of
+aiohttp.
 
 Getting Started
 -----
@@ -40,9 +48,9 @@ as the User class should minimally look like this:
     @property
     def forbidden(self):
         return False
-*Note* The User class should inherit from aiologin.AbstractUser
+*Note:* The User class should inherit from aiologin.AbstractUser
 and define its authenticated and forbidden properties inside the user class. If
-these conditions are not met the module with throw executions.
+these conditions are not met the module with throw Exceptions.
 
 Further Setup
 -----
@@ -74,10 +82,9 @@ header and session.
 
 Furthermore, whatever handlers you want to be secured should have the
 @aiologin.secured decorator before it. This will create a wrapper for your
-handler that will create a user based on the
-
-Usage
------
+handler that will create a user based on the authentication methods you defined
+earlier. Below are the three handlers, one for login and logout, as well as a
+one for the home route that is secured so only a logged in user could access it.
 
 .. code:: Python
 
@@ -94,6 +101,11 @@ Usage
         await request.aiologin.logout()
         return web.Response()
 
+Last Steps
+-----
+now that you have everything setup you simply need to create your web
+application, add your routes, create your event loop, and then run that loop for
+as long as you want.
     async def init(loop):
         app = web.Application(middlewares=[
             session_middleware(SimpleCookieStorage())
