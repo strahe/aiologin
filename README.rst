@@ -52,13 +52,13 @@ as the User class should minimally look like this:
 and define its authenticated and forbidden properties inside the user class. If
 these conditions are not met the module with throw Exceptions.
 
-Further Setup
+Further Setup, Creating Your Handlers and Authentication Methods 
 -----
-Once your User class has be created you now should create your handler and
-authentication methods that your server will use to handle the routes you will
-add later. See the sample below for some example handler and authentication
-methods. At the very least you should create two handlers one for a Login route
-and one for a Logout route.
+Once your User class has be created in your server.py file you now should create
+your handler and authentication methods that your server will use to handle the 
+routes you will add later. See the sample below for some example handler and 
+authentication methods. At the very least you should create two handlers one for
+a Login route and one for a Logout route.
 
 Additionally, you should define the auth_by_header and auth_by_session methods,
 that will be passed into the aiologin class. These two authorization methods
@@ -101,25 +101,54 @@ one for the home route that is secured so only a logged in user could access it.
         await request.aiologin.logout()
         return web.Response()
 
-Last Steps
+More Setup, Creating Your Web App and Adding Routes To It 
 -----
-now that you have everything setup you simply need to create your web
-application, add your routes, create your event loop, and then run that loop for
-as long as you want.
-    async def init(loop):
+Now you need to create your web app that will contain your routes
+as well as your middleware that you can add at your own discretion.
+What you will defininitly need to add is the session_middleware with
+the SimpleCookieStorage class passed in. See the example below
+
+.. code:: Python
+
         app = web.Application(middlewares=[
             session_middleware(SimpleCookieStorage())
         ])
+        
+Once you defined your web app, add it to the aiologin class via it's
+setup method, as well as pointers to your auth_by_header and 
+auth_by_session methods. See the example below 
 
-        aiologin.setup(app, User)
+.. code:: Python
+
+        aiologin.setup(
+        app=app,
+        auth_by_header=auth_by_header,
+        auth_by_session=auth_by_session
+    )
+
+One last step before starting your server is to add your routes. 
+For that all you need to do is manually add your routes with thier
+respective handler methods. See the example below 
+
+.. code:: Python
 
         app.router.add_route('GET', '/', handler)
         app.router.add_route('GET', '/login', login)
         app.router.add_route('GET', '/logout', logout)
+        
+
+Last Steps, Creating and Starting Your Event Loop
+-----
+Once evething is set up, we create our async server via 
+a async method that will create and run our server for as
+long as we need. the code for that looks as follows:
+
+.. code:: Python
+
+    async def init(loop):
         srv = await loop.create_server(
             app.make_handler(), '0.0.0.0', 8080)
         return srv
-
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(init(loop))
