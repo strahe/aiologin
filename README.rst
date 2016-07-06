@@ -12,30 +12,46 @@ by the flask-login module.
 Getting Started
 -----
 The first thing you are going to want to do is create your server.py file.
-Inside that file you are going to want to define your user class which is
-needed store your users sessions. It should inherit from aiologin.AbstractUser
+Inside that file you are going to want to define your user class which is needed
+store your users session's information. The begging of the server file as well
+as the User class should minimally look like this:
+.. code:: Python
+    #!/usr/bin/python3
+
+    import asyncio
+    from urllib.parse import parse_qs
+
+    from aiohttp import web
+    from aiohttp_session import session_middleware, SimpleCookieStorage
+
+    import aiologin
+    class User(aiologin.AbstractUser):
+    def __init__(self, email, password):
+        print("user class made")
+        self.email = email
+        self.password = password
+
+    @property
+    def authenticated(self):
+        return True
+
+    @property
+    def forbidden(self):
+        return False
+Note that the User class **MUST** inherit from aiologin.AbstractUser
 and define its authenticated and forbidden properties inside the user class.
 
+Once your User class has be created you now should create your handler and
+authentication methods that your server will use to handle the routes you will
+add later. See the sample below from some example handlers and authentication
+methods. At the very least you should create two routes, Login and Logout.
+Additionally, you should define the auth_by_header and auth_by_session methods
+in the aiologin class.
 
 Usage
 -----
 
 .. code:: Python
-
-    import asyncio
-    from aiohttp import web
-    from aiohttp_session import session_middleware, SimpleCookieStorage
-    import aiologin
-
-    class User(aiologin.AbstractUser):
-        @property
-        def authenticated(self):
-            return True
-
-        @property
-        def forbidden(self):
-            return False
-
     @aiologin.secured
     async def handler(request):
         print(await request.aiologin.current_user())
