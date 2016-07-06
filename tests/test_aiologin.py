@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-
+from aiohttp.test_utils import TestClient, loop_context, unittest_run_loop
+from aiohttp import request
 import asyncio
 from urllib.parse import parse_qs
 
@@ -11,12 +12,17 @@ import aiologin
 print("file run")
 
 
-class User(aiologin.AbstractUser):
+class TestUser(aiologin.AbstractUser):
+
+    # User classes need attributes to be identified with, in this case we use
+    # email and password
     def __init__(self, email, password):
         print("user class made")
         self.email = email
         self.password = password
 
+    # the properties of authenticated and forbidden must be overridden form the
+    # parent class or else an exception will be thrown.
     @property
     def authenticated(self):
         return True
@@ -28,20 +34,20 @@ class User(aiologin.AbstractUser):
 async def auth_by_header(request, key):
     print("inside the auth_by_header method")
     if key == '1234567890':
-        return User('trivigy@gmail.com', 'blueberry')
+        return TestUser('Test@User.com', 'foobar')
     return None
 
 async def auth_by_session(request, profile):
     print("inside the auth_by_session method")
     if 'email' in profile and profile['email'] == 'trivigy@gmail.com' and \
             'password' in profile and profile['password'] == 'blueberry':
-        return User(profile['email'], profile['password'])
+        return TestUser(profile['email'], profile['password'])
     return None
 
 async def auth_by_form(request, email, password):
     print("inside the auth_by_forum method")
     if email == 'trivigy@gmail.com' and password == 'blueberry':
-        return User(email, password)
+        return TestUser(email, password)
     return None
 
 
@@ -58,7 +64,7 @@ async def login(request):
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:
         raise web.HTTPUnauthorized
-    # remember is false you should add your own functionality
+    # remember is false by default, but should be set at your discretion
     await request.aiologin.login(user, remember=False)
     return web.Response()
 

@@ -5,7 +5,17 @@ Aiologin
 This module provides extension to the `aiohttp_session <http://aiohttp-session.
 readthedocs.io/en/latest>`_ and `aiohttp.web <https://aiohttp.readthedocs.io/en/
 latest/web.html>`_ projects by extending their functionality with this login
-management tool.
+management tool. The style of this login management module was greatly inspired
+by the flask-login module.
+
+
+Getting Started
+-----
+The first thing you are going to want to do is create your server.py file.
+Inside that file you are going to want to define your user class which is
+needed store your users sessions. It should inherit from aiologin.AbstractUser
+and define its authenticated and forbidden properties inside the user class.
+
 
 Usage
 -----
