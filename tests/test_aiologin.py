@@ -99,20 +99,49 @@ def test_app_setup(loop):
 class TestAioLogin(AioHTTPTestCase):
 
     def get_app(self, loop):
-
-        # it's important to use the loop passed here.
-
         return test_app_setup(loop=loop)
 
-    def test_example(self):
-        async def test_get_route():
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+
+    def test_routes(self):
+        async def test_home_route_no_login():
+            print("\n"+"1: testing access without logging in"+"\n")
+            # use loop_context because it takes care of the setup and teardown
+            # of the loop once it's done
             loop = loop_context
             url = "/"
             resp = await self.client.request("GET", url)
-            assert resp.status == 401
-            text = await resp.prepa
+            self.assertEqual(resp.status, 401)
+            text = await resp.text()
             self.assertEqual(text, "Unauthorized")
-        self.loop.run_until_complete(test_get_route())
+            resp.close()
+        self.loop.run_until_complete(test_home_route_no_login())
+        print("\n"+"test successful"+"\n")
+
+        async def test_login_bad():
+            print("\n"+"2: testing a bad login attempt"+"\n")
+            url = "/login?email=BadTest@BadUser.com&password=bad"
+            resp = await self.client.request("GET", url)
+            self.assertEqual(resp.status, 401)
+            resp.close()
+            text = await resp.text()
+            self.assertEqual(text, "401: Unauthorized")
+            print("\n"+"test successful"+"\n")
+        self.loop.run_until_complete(test_login_bad())
+
+        async def test_login_good():
+            print("\n" + "3: testing a good login attempt" + "\n")
+            url = "/login?email=Test@User.com&password=foobar"
+            resp = await self.client.request("GET", url)
+            assert resp.status == 200
+            resp.close()
+            print("\n" + "test successful" + "\n")
+
+        self.loop.run_until_complete(test_login_good())
 
 if __name__ == '__main__':
     unittest.main()

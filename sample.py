@@ -70,7 +70,7 @@ app = web.Application(middlewares=[
     session_middleware(SimpleCookieStorage())
     ])
 aiologin.setup(
-    app=app, auth_by_header=auth_by_header,auth_by_session=auth_by_session
+    app=app, auth_by_header=auth_by_header, auth_by_session=auth_by_session
     )
 
 app.router.add_route('GET', '/', handler)
