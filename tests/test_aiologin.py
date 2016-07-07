@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import unittest
 from aiohttp.test_utils import TestClient, loop_context, unittest_run_loop
 from aiohttp import request
 import asyncio
@@ -9,20 +10,20 @@ from aiohttp_session import session_middleware, SimpleCookieStorage
 
 import aiologin
 
-print("file run")
+print("test being run")
 
 
 class TestUser(aiologin.AbstractUser):
 
-    # User classes need attributes to be identified with, in this case we use
-    # email and password
+    # User classes should have attributes to be identified with, in this case
+    #  we use email and password attributes
     def __init__(self, email, password):
-        print("user class made")
+        print("User class made")
         self.email = email
         self.password = password
 
-    # the properties of authenticated and forbidden must be overridden form the
-    # parent class or else an exception will be thrown.
+    # the properties of authenticated and forbidden must be overridden from the
+    # parent class or else an exception will be thrown when the class is used
     @property
     def authenticated(self):
         return True
@@ -107,3 +108,5 @@ try:
 except KeyboardInterrupt:
     pass
 
+if __name__== '__main__':
+    unittest.main()
