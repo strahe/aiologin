@@ -5,7 +5,6 @@ from urllib.parse import parse_qs
 
 from aiohttp import web
 from aiohttp_session import session_middleware, SimpleCookieStorage
-
 import aiologin
 
 
@@ -87,7 +86,6 @@ async def init(loop, app):
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop, app))
-
 try:
     print("run forever loop is about to start, so the init is done")
     print("")
