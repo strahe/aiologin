@@ -137,11 +137,29 @@ class TestAioLogin(AioHTTPTestCase):
             print("\n" + "3: testing a good login attempt" + "\n")
             url = "/login?email=Test@User.com&password=foobar"
             resp = await self.client.request("GET", url)
-            assert resp.status == 200
+            self.assertEqual(resp.status, 200)
             resp.close()
             print("\n" + "test successful" + "\n")
-
         self.loop.run_until_complete(test_login_good())
+
+        async def test_logout():
+            print("\n" + "4: testing a logout attempt" + "\n")
+            url = "/logout"
+            resp = await self.client.request("GET", url)
+            self.assertEqual(resp.status, 200)
+            resp.close()
+            print("\n" + "test successful" + "\n")
+        self.loop.run_until_complete(test_logout())
+
+        # async def test_home_route_with_login():
+        #     print("\n" + "5: testing a login and then a home route"
+        #                  "get request" + "\n")
+        #     url = "/login?email=User@Test.com&password=foobar"
+        #     resp = await self.client.request("GET", url)
+        #     assert resp.status == 200
+        #     resp.close()
+        #     print("\n" + "test successful" + "\n")
+        # self.loop.run_until_complete(test_home_route_with_login())
 
 if __name__ == '__main__':
     unittest.main()
