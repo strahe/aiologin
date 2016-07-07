@@ -119,8 +119,9 @@ class TestAioLogin(AioHTTPTestCase):
             text = await resp.text()
             self.assertEqual(text, "Unauthorized")
             resp.close()
+            print("\n" + "test successful" + "\n")
         self.loop.run_until_complete(test_home_route_no_login())
-        print("\n"+"test successful"+"\n")
+
 
         async def test_login_bad():
             print("\n"+"2: testing a bad login attempt"+"\n")
@@ -138,28 +139,41 @@ class TestAioLogin(AioHTTPTestCase):
             url = "/login?email=Test@User.com&password=foobar"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 200)
+            # the cookie is stored for a home route test later
+            self.client.session.cookies.update(resp.cookies)
             resp.close()
             print("\n" + "test successful" + "\n")
         self.loop.run_until_complete(test_login_good())
 
+        async def test_home_route_with_login():
+            print("\n" + "4: testing the home route after a good login" + "\n")
+            url = "/"
+            resp = await self.client.request("GET", url)
+            self.assertEqual(resp.status, 200)
+            text = await resp.text()
+            self.assertEqual(text, "OK")
+            print("\n" + "test successful" + "\n")
+        self.loop.run_until_complete(test_home_route_with_login())
+
         async def test_logout():
-            print("\n" + "4: testing a logout attempt" + "\n")
+            print("\n" + "5: testing a logout attempt" + "\n")
             url = "/logout"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 200)
             resp.close()
             print("\n" + "test successful" + "\n")
+            # this should replace the cookie to the logout cookie
+            self.client.session.cookies.update(resp.cookies)
         self.loop.run_until_complete(test_logout())
 
-        # async def test_home_route_with_login():
-        #     print("\n" + "5: testing a login and then a home route"
-        #                  "get request" + "\n")
-        #     url = "/login?email=User@Test.com&password=foobar"
-        #     resp = await self.client.request("GET", url)
-        #     assert resp.status == 200
-        #     resp.close()
-        #     print("\n" + "test successful" + "\n")
-        # self.loop.run_until_complete(test_home_route_with_login())
-
+        async  def test_login_home_route_after_logout():
+            print("\n" + "6: testing access after logging out" + "\n")
+            loop = loop_context
+            url = "/"
+            resp = await self.client.request("GET", url )
+            self.assertEqual(resp.status, 401)
+            text = await resp.text()
+            self.assertEqual(text, "Unauthorized")
+        self.loop.run_until_complete(test_login_home_route_after_logout())
 if __name__ == '__main__':
     unittest.main()
