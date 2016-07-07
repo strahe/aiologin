@@ -19,7 +19,10 @@ aiohttp.
 
 Installation
 -----
-
+To install this module for a linux system, just clone this repo and use the
+command
+ .. code:: bash
+    sudo python3 setup.y intall
 
 Getting Started
 -----
