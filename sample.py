@@ -5,7 +5,6 @@ from urllib.parse import parse_qs
 
 from aiohttp import web
 from aiohttp_session import session_middleware, SimpleCookieStorage
-
 import aiologin
 
 
@@ -63,7 +62,7 @@ app = web.Application(middlewares=[
     session_middleware(SimpleCookieStorage())
     ])
 aiologin.setup(
-    app=app, auth_by_header=auth_by_header,auth_by_session=auth_by_session
+    app=app, auth_by_header=auth_by_header, auth_by_session=auth_by_session
     )
 
 app.router.add_route('GET', '/', handler)
@@ -78,7 +77,6 @@ async def init(loop, app):
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop, app))
-
 try:
     loop.run_forever()
 except KeyboardInterrupt:
