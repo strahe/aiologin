@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import unittest
-from aiohttp.test_utils import TestClient, loop_context, unittest_run_loop
+from aiohttp.test_utils import TestClient, AioHTTPTestCase, loop_context
 from aiohttp import request
 import asyncio
 from urllib.parse import parse_qs
@@ -106,16 +106,15 @@ async def init_loop(loop, app):
     return srv
 
 app = test_app_setup()
-loop = asyncio.get_event_loop()
+loop = loop_context
 loop.run_until_complete(init_loop(loop, app))
-def test_handler():
-    req = make_request('get', 'http://python.org/', headers={'token': 'x')
-    resp = header(req)
-    assert resp.body == b'data'
 
+
+async def test_handler(app):
+    test =TestClient(app)
+    AioHTTPTestCase
 try:
-    print("run forever loop is about to start"+"\n")
-    loop.run_forever()
+    pass
 except KeyboardInterrupt:
     pass
 
