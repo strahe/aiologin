@@ -33,6 +33,7 @@ class User(aiologin.AbstractUser):
         return False
     print("User class made")
 
+
 # by default these methods are NUll, but you should override these methods and
 # pass them to the aiologin class. These two methods have sample forms of
 # authorization, but you should have create your own in your own version.
@@ -106,17 +107,49 @@ async def init_loop(loop, app):
     return srv
 
 app = test_app_setup()
-loop = loop_context
+loop = asyncio.get_event_loop()
 loop.run_until_complete(init_loop(loop, app))
 
+# try:
+#     print("run forever loop is about to start, so the init is done")
+#     print("")
+#     loop.run_forever()
+# except KeyboardInterrupt:
+#     pass
 
-async def test_handler(app):
-    test =TestClient(app)
-    AioHTTPTestCase
-try:
-    pass
-except KeyboardInterrupt:
-    pass
 
-if __name__ == '__main__':
-    unittest.main()
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+from aiohttp import web
+
+class MyAppTestCase(AioHTTPTestCase):
+
+    def get_app(self, loop):
+        """
+        override the get_app method to return
+        your application.
+        """
+        web.Application(loop=loop)
+        self.app = test_app_setup()
+        # it's important to use the loop passed here.
+        return web.Application(loop=loop)
+
+    # the unittest_run_loop decorator can be used in tandem with
+    # the AioHTTPTestCase to simplify running
+    # tests that are asynchronous
+    # @unittest_run_loop
+    # async def test_example(self):
+    #     request = await self.client.request("GET", "/")
+    #     assert request.status == 200
+    #     text = await request.text()
+    #     assert "Hello, world" in text
+
+    # a vanilla example
+    def test_example(self):
+        async def test_get_route():
+            url = "localhost:8080" + "/"
+            resp = await self.client.request("GET", url, loop=loop)
+            assert resp.status == 401
+            text = await resp.text()
+            assert "Unauthorized" in text
+
+        self.loop.run_until_complete(test_get_route())

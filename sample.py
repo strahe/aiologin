@@ -8,8 +8,6 @@ from aiohttp_session import session_middleware, SimpleCookieStorage
 
 import aiologin
 
-print("file run")
-
 
 class User(aiologin.AbstractUser):
     def __init__(self, email, password):
