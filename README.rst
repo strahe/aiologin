@@ -22,6 +22,7 @@ Installation
 To install this module for a linux system, just clone this repo and use the
 command
  .. code:: Bash
+
     sudo python3 setup.y intall
 
 Getting Started
