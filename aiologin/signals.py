@@ -62,7 +62,3 @@ class HomeRouteSignal(AbstractSignal):
         super.__init__(name)
         return self
 
-class (AbstractSignal):
-    def init(self, name):
-        super.__init__(name)
-        return self
