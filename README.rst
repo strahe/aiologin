@@ -21,7 +21,7 @@ Installation
 -----
 To install this module just use pip3 with the following command
 
- .. code:: Python3
+.. code:: Python
 
     sudo pip3 install aiologin
 
