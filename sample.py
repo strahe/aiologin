@@ -6,7 +6,7 @@ from urllib.parse import parse_qs
 from aiohttp import web
 from aiohttp_session import session_middleware, SimpleCookieStorage
 import aiologin
-
+import aiologin.signals
 
 class User(aiologin.AbstractUser):
     def __init__(self, email, password):
@@ -37,19 +37,24 @@ async def auth_by_form(request, email, password):
         return User(email, password)
     return None
 
-async def message():
+
+@asyncio.coroutine
+def message():
     print("login has occured")
 
 login_signal = aiologin.signals.LoginSignal('login')
+login_signal.add_callback(message)
+# login_signal = message
 
 @aiologin.secured
 async def handler(request):
     # print(await request.aiologin.current_user())
+    await login_signal.send()
+    login_signal.send()
     return web.Response(body=b'OK')
 
 
 async def login(request):
-    login_signal.send()
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:

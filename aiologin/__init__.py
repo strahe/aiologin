@@ -5,7 +5,6 @@ from collections.abc import MutableMapping
 from aiohttp import web
 from aiohttp.web_reqrep import Request
 from aiohttp_session import get_session
-
 AIOLOGIN_KEY = '__aiologin__'
 
 
