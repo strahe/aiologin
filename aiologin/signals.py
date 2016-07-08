@@ -37,11 +37,6 @@ class AbstractSignal:
         else:
             print("not a coroutine, should throw an exception")
 
-# should the three signals be singleton classes?
-# should you be able to remove callbacks from signals?
-# should I have more signals?
-# Am I using signals correctly?
-
 
 class LoginSignal(AbstractSignal):
     def init(self, name):

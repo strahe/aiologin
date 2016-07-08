@@ -59,7 +59,6 @@ login_signal.add_callback(bad_message)
 
 @aiologin.secured
 async def handler(request):
-    # print(await request.aiologin.current_user())
     return web.Response(body=b'OK')
 
 
