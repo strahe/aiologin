@@ -23,21 +23,24 @@ class AbstractSignal:
     @asyncio.coroutine
     def send(self):
         for callback in self.callback:
-            yield from callback()
-
-            # check to see if the receivers are coroutine or futures
-            # not sure why its not working
-            if asyncio.iscoroutine(callback) or \
+            if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
                 yield from callback()
 
     def add_callback(self, callback):
-        # if asyncio.iscoroutine(callback) or \
-        #         isinstance(callback, asyncio.Future):
-        if self.callback is None:
-            self.callback = [callback]
+        if asyncio.iscoroutinefunction(callback) or \
+                isinstance(callback, asyncio.Future):
+            if self.callback is None:
+                self.callback = [callback]
+            else:
+                self.callback.append(callback)
         else:
-            self.callback.append(callback)
+            print("not a coroutine, should throw an exception")
+
+# should the three signals be singleton classes?
+# should you be able to remove callbacks from signals?
+# should I have more signals?
+# Am I using signals correctly?
 
 
 class LoginSignal(AbstractSignal):

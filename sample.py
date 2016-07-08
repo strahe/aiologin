@@ -47,10 +47,14 @@ def message():
 def second_message():
     print("this is the second message added")
 
+def bad_message():
+    print("this should throw an exception if added, but for now it just prints"
+          "a warning ")
+
 login_signal = aiologin.signals.LoginSignal('login')
 login_signal.add_callback(message)
 login_signal.add_callback(second_message)
-
+login_signal.add_callback(bad_message)
 
 
 @aiologin.secured
