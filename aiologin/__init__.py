@@ -158,8 +158,7 @@ def middleware_factory(**options):
     return aiologin_middleware
 
 
-def secured(func, signal):
-    signal.send()
+def secured(func):
     @asyncio.coroutine
     def wrapper(*args, **kwargs):
         request = kwargs['request'] if 'request' in kwargs else args[0]

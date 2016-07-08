@@ -40,7 +40,7 @@ async def auth_by_form(request, email, password):
 async def message():
     print("login has occured")
 
-login_signal = aiologin.signals.Signal(message, 'login')
+login_signal = aiologin.signals.LoginSignal('login')
 
 @aiologin.secured
 async def handler(request):
@@ -49,6 +49,7 @@ async def handler(request):
 
 
 async def login(request):
+    login_signal.send()
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:

@@ -2,17 +2,20 @@ import asyncio
 
 
 class AbstractSignal:
-    def __init__(self, callback, name):
+    def __init__(self, name):
         super().__init__()
-        if asyncio.iscoroutine(callback) or \
-                isinstance(callback, asyncio.Future):
-            self.callback = [callback]
         self.name = name
 
-    def __eq__(self, new_callback):
-        if asyncio.iscoroutine(new_callback) or \
-                isinstance(new_callback, asyncio.Future):
-            self.callback += new_callback
+    def __eq__(self, callback):
+        # if asyncio.iscoroutine(callback) or \
+        #         isinstance(callback, asyncio.Future):
+        #     self.callback += callback
+        if asyncio.iscoroutine(callback) or \
+                isinstance(callback, asyncio.Future):
+            if self.callback is None:
+                self.callback = [callback]
+            else:
+                self.callback.append(callback)
 
     @asyncio.coroutine
     def send(self):
@@ -22,10 +25,18 @@ class AbstractSignal:
             if asyncio.iscoroutine(res) or isinstance(res, asyncio.Future):
                 yield from res
 
-    def add_callback(self, subscriber):
-        #does this even work?
-        self.callback.append(subscriber)
+    def add_callback(self, callback):
+        if asyncio.iscoroutine(callback) or \
+                isinstance(callback, asyncio.Future):
+            if self.callback is None:
+                 self.callback = [callback]
+            else:
+                self.callback.append(callback)
+
 
 class LoginSignal(AbstractSignal):
-    
+    print("loginSignal class made")
 
+
+class LogoutSignal(AbstractSignal):
+    print("loginSignal class made")
