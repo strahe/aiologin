@@ -1,7 +1,7 @@
 import unittest
 from urllib.parse import parse_qs
 
-from aiohttp import web
+from aiohttp import web ,web_reqrep
 from aiohttp.test_utils import AioHTTPTestCase, loop_context
 from aiohttp_session import session_middleware, SimpleCookieStorage
 
@@ -99,7 +99,10 @@ def test_app_setup(loop):
 class TestAioLogin(AioHTTPTestCase):
 
     def get_app(self, loop):
-        return test_app_setup(loop=loop)
+        app = test_app_setup(loop=loop)
+        # simple test to make sure we are not getting a null for the app
+        self.assertIsNotNone(app)
+        return app
 
     def setUp(self):
         super().setUp()
@@ -110,6 +113,10 @@ class TestAioLogin(AioHTTPTestCase):
     def test_routes(self):
         async def test_home_route_no_login():
             print("\n"+"1: testing access without logging in"+"\n")
+            print("\n"+"if you get a deprecated warning on using Response."
+                       "Prepared, that's because the use of web_utils is not "
+                       "100% correct by one of the modules we use that in turn "
+                       "are import web_utils "+"\n")
             # use loop_context because it takes care of the setup and teardown
             # of the loop once it's done
             loop = loop_context
