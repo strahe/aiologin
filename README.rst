@@ -21,9 +21,9 @@ Installation
 -----
 To install this module for a linux system, just clone this repo and use the
 command
- .. code:: Bash
+ .. code:: Python3
 
-    sudo python3 setup.y intall
+    pip3 install aiologin
 
 Getting Started
 -----
