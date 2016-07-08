@@ -40,11 +40,18 @@ async def auth_by_form(request, email, password):
 
 @asyncio.coroutine
 def message():
-    print("practice signal for login attempt")
+    print("practice signal for logout attempt")
+
+
+@asyncio.coroutine
+def second_message():
+    print("this is the second message added")
 
 login_signal = aiologin.signals.LoginSignal('login')
 login_signal.add_callback(message)
-# login_signal = message
+login_signal.add_callback(second_message)
+
+
 
 @aiologin.secured
 async def handler(request):
@@ -64,7 +71,6 @@ async def login(request):
 
 async def logout(request):
     await login_signal.send()
-    login_signal.send()
     await request.aiologin.logout()
     return web.Response()
 
