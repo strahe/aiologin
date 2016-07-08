@@ -1,7 +1,7 @@
 import unittest
 from urllib.parse import parse_qs
 
-from aiohttp import web
+from aiohttp import web ,web_reqrep
 from aiohttp.test_utils import AioHTTPTestCase, loop_context
 from aiohttp_session import session_middleware, SimpleCookieStorage
 
@@ -99,7 +99,10 @@ def test_app_setup(loop):
 class TestAioLogin(AioHTTPTestCase):
 
     def get_app(self, loop):
-        return test_app_setup(loop=loop)
+        app = test_app_setup(loop=loop)
+        # simple test to make sure we are not getting a null for the app
+        self.assertIsNotNone(app)
+        return app
 
     def setUp(self):
         super().setUp()
@@ -110,6 +113,10 @@ class TestAioLogin(AioHTTPTestCase):
     def test_routes(self):
         async def test_home_route_no_login():
             print("\n"+"1: testing access without logging in"+"\n")
+            print("\n"+"if you get a deprecated warning on using Response."
+                       "Prepared, that's because the use of web_utils is not "
+                       "100% correct by one of the modules we use that in turn "
+                       "are import web_utils "+"\n")
             # use loop_context because it takes care of the setup and teardown
             # of the loop once it's done
             loop = loop_context
@@ -119,8 +126,9 @@ class TestAioLogin(AioHTTPTestCase):
             text = await resp.text()
             self.assertEqual(text, "Unauthorized")
             resp.close()
+            print("\n" + "test successful" + "\n")
         self.loop.run_until_complete(test_home_route_no_login())
-        print("\n"+"test successful"+"\n")
+
 
         async def test_login_bad():
             print("\n"+"2: testing a bad login attempt"+"\n")
@@ -137,11 +145,42 @@ class TestAioLogin(AioHTTPTestCase):
             print("\n" + "3: testing a good login attempt" + "\n")
             url = "/login?email=Test@User.com&password=foobar"
             resp = await self.client.request("GET", url)
-            assert resp.status == 200
+            self.assertEqual(resp.status, 200)
+            # the cookie is stored for a home route test later
+            self.client.session.cookies.update(resp.cookies)
             resp.close()
             print("\n" + "test successful" + "\n")
-
         self.loop.run_until_complete(test_login_good())
 
+        async def test_home_route_with_login():
+            print("\n" + "4: testing the home route after a good login" + "\n")
+            url = "/"
+            resp = await self.client.request("GET", url)
+            self.assertEqual(resp.status, 200)
+            text = await resp.text()
+            self.assertEqual(text, "OK")
+            print("\n" + "test successful" + "\n")
+        self.loop.run_until_complete(test_home_route_with_login())
+
+        async def test_logout():
+            print("\n" + "5: testing a logout attempt" + "\n")
+            url = "/logout"
+            resp = await self.client.request("GET", url)
+            self.assertEqual(resp.status, 200)
+            resp.close()
+            print("\n" + "test successful" + "\n")
+            # this should replace the cookie to the logout cookie
+            self.client.session.cookies.update(resp.cookies)
+        self.loop.run_until_complete(test_logout())
+
+        async  def test_login_home_route_after_logout():
+            print("\n" + "6: testing access after logging out" + "\n")
+            loop = loop_context
+            url = "/"
+            resp = await self.client.request("GET", url )
+            self.assertEqual(resp.status, 401)
+            text = await resp.text()
+            self.assertEqual(text, "Unauthorized")
+        self.loop.run_until_complete(test_login_home_route_after_logout())
 if __name__ == '__main__':
     unittest.main()
