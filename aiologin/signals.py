@@ -50,3 +50,19 @@ class LoginSignal(AbstractSignal):
         super.__init__(name)
         return self
 
+
+class LogoutSignal(AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
+
+
+class HomeRouteSignal(AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
+
+class (AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
