@@ -23,7 +23,7 @@ To install this module just use pip3 with the following command
 
  .. code:: Python3
 
-    pip3 install aiologin
+    sudo pip3 install aiologin
 
 Getting Started
 -----
