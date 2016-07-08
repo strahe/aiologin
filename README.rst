@@ -19,8 +19,8 @@ aiohttp.
 
 Installation
 -----
-To install this module for a linux system, just clone this repo and use the
-command
+To install this module just use pip3 with the following command
+
  .. code:: Python3
 
     pip3 install aiologin
