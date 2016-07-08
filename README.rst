@@ -17,6 +17,14 @@ http://aiohttp-session.readthedocs.io/en/latest/. Additionally, this module uses
 aiohttp.test_utils which is currently only available in the latest version of
 aiohttp.
 
+Installation
+-----
+To install this module just use pip3 with the following command
+
+ .. code:: Pythone
+
+    sudo pip3 install aiologin
+
 Getting Started
 -----
 The first thing you are going to want to do is create your server.py file.
