@@ -37,6 +37,10 @@ async def auth_by_form(request, email, password):
         return User(email, password)
     return None
 
+async def message():
+    print("login has occured")
+
+login_signal = aiologin.signals.Signal(message, 'login')
 
 @aiologin.secured
 async def handler(request):
