@@ -92,7 +92,7 @@ class AioLogin:
         for callback in self._auth_by_session_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
-                yield from callback()
+                yield from callback(request)
             else:
                 raise TypeError
 
@@ -119,7 +119,7 @@ class AioLogin:
         for callback in self._secured_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
-                yield from callback()
+                yield from callback(user)
             else:
                 raise TypeError
 
