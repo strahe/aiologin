@@ -46,7 +46,7 @@ def message():
 
 @asyncio.coroutine
 def second_message():
-    print("this is the second message added")
+    print("this is the second message added to the login signaler")
 
 
 @asyncio.coroutine
