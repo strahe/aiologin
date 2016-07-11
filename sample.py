@@ -59,10 +59,6 @@ def fourth_message():
     print("This is message is for the secured route")
 
 
-def bad_message():
-    print("this should not print, rather it would throw an exception if added")
-
-
 @aiologin.secured
 async def handler(request):
     return web.Response(body=b'OK')
@@ -89,7 +85,7 @@ aiologin.setup(
     app=app,
     auth_by_header=auth_by_header,
     auth_by_session=auth_by_session,
-    login_signal=[message, second_message,bad_message],
+    login_signal=[message, second_message],
     logout_signal=[third_message],
     secured_signal=[fourth_message]
 )
