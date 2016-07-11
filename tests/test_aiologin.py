@@ -88,6 +88,7 @@ def test_app_setup(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session
+
     )
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
