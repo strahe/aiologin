@@ -115,7 +115,7 @@ class AioLogin:
                 raise TypeError
 
     @asyncio.coroutine
-    def secured_signal(self,user):
+    def secured_signal(self, user):
         for callback in self._secured_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):

@@ -40,30 +40,30 @@ async def auth_by_form(request, email, password):
 
 
 @asyncio.coroutine
-def message(var):
+def message(user):
     print("practice signal for login attempt")
 
 
 @asyncio.coroutine
-def second_message(var):
+def second_message(user):
     print("this is the second message added to the login signaler")
 
 
 @asyncio.coroutine
-def third_message(var):
+def third_message(session):
     print("this is the logout message")
 
 
 @asyncio.coroutine
-def fourth_message(var):
+def fourth_message(user):
     print("This is message prints for on a generic security success")
 
 @asyncio.coroutine
-def fifth_message(var):
+def fifth_message(request):
     print("This is message prints only when auth_by_header was successful")
 
 @asyncio.coroutine
-def sixth_message(var):
+def sixth_message(request):
     print("This is message prints only when auth_by_session was successful")
 
 @aiologin.secured
