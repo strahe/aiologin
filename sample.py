@@ -60,7 +60,7 @@ def fourth_message():
 
 
 def bad_message():
-    print("this should not print")
+    print("this should not print, rather it would throw an exception if added")
 
 
 @aiologin.secured

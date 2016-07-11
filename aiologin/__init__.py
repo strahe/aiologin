@@ -174,9 +174,6 @@ class AioLogin:
     def anonymous_user(self):
         return self._anonymous_user
 
-    def set_login_signal(self, login_signal):
-        self.login_signal = login_signal
-
 
 def setup(app, **kwargs):
     app.middlewares.append(middleware_factory(**kwargs))
