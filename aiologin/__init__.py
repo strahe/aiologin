@@ -5,6 +5,7 @@ from collections.abc import MutableMapping
 from aiohttp import web
 from aiohttp.web_reqrep import Request
 from aiohttp_session import get_session
+
 AIOLOGIN_KEY = '__aiologin__'
 
 
@@ -77,6 +78,7 @@ class AioLogin:
         self._auth_by_session = auth_by_session
         self._unauthorized = unauthorized
         self._forbidden = forbidden
+        self.login_signal = None
 
     @asyncio.coroutine
     def login(self, user, remember):
@@ -88,6 +90,7 @@ class AioLogin:
             "Expected 'bool' type for {} but received {}".format(
                 remember, type(remember)
             )
+        yield from LoginSignal.send(self.login_signal)
         session = yield from self._session(self._request)
         session['remember'] = remember
         session[self._session_name] = dict(user)
@@ -155,6 +158,61 @@ def middleware_factory(**options):
         return aiologin_handler
 
     return aiologin_middleware
+
+
+class AbstractSignal:
+    def __init__(self, name):
+        super().__init__()
+        self.callback = []
+        self.name = name
+        self.singleton = None
+    # def __setattr__(self, callback, value):
+    #     # if asyncio.iscoroutine(callback) or \
+    #     #         isinstance(callback, asyncio.Future):
+    #     #     self.callback += callback
+    #     print(" the = has is now trying to add a callback")
+    #     if asyncio.iscoroutine(callback) or \
+    #             isinstance(callback, asyncio.Future):
+    #         print("callback has been added")
+    #         if self.callback is None:
+    #             self.callback = [callback]
+    #         else:
+    #             self.callback.append(callback)
+
+    @asyncio.coroutine
+    def send(self):
+        for callback in self.callback:
+            if asyncio.iscoroutinefunction(callback) or \
+                    isinstance(callback, asyncio.Future):
+                yield from callback()
+
+    def add_callback(self, callback):
+        if asyncio.iscoroutinefunction(callback) or \
+                isinstance(callback, asyncio.Future):
+            if self.callback is None:
+                self.callback = [callback]
+            else:
+                self.callback.append(callback)
+        else:
+            print("not a coroutine, should throw an exception")
+
+
+class LoginSignal(AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
+
+
+class LogoutSignal(AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
+
+
+class SecuredRoutesSignal(AbstractSignal):
+    def init(self, name):
+        super.__init__(name)
+        return self
 
 
 def secured(func):

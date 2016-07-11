@@ -5,8 +5,9 @@ from urllib.parse import parse_qs
 
 from aiohttp import web
 from aiohttp_session import session_middleware, SimpleCookieStorage
+
 import aiologin
-import aiologin.signals
+
 
 class User(aiologin.AbstractUser):
     def __init__(self, email, password):
@@ -41,20 +42,22 @@ async def auth_by_form(request, email, password):
 @asyncio.coroutine
 def message():
     print("practice signal for logout attempt")
+#
+#
+# @asyncio.coroutine
+# def second_message():
+#     print("this is the second message added")
+#
+#
+# def bad_message():
+#     print("this should throw an exception if added, but for now it just prints"
+#           "a warning ")
 
-
-@asyncio.coroutine
-def second_message():
-    print("this is the second message added")
-
-def bad_message():
-    print("this should throw an exception if added, but for now it just prints"
-          "a warning ")
-
-login_signal = aiologin.signals.LoginSignal('login')
+login_signal = aiologin.LoginSignal("hi")
+# login_signal.init("test")
 login_signal.add_callback(message)
-login_signal.add_callback(second_message)
-login_signal.add_callback(bad_message)
+# login_signal.add_callback(second_message)
+# login_signal.add_callback(bad_message)
 
 
 @aiologin.secured
@@ -63,6 +66,7 @@ async def handler(request):
 
 
 async def login(request):
+    request.aiologin.login_signal = login_signal
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:
@@ -73,7 +77,6 @@ async def login(request):
 
 
 async def logout(request):
-    await login_signal.send()
     await request.aiologin.logout()
     return web.Response()
 
@@ -102,4 +105,5 @@ try:
     loop.run_forever()
 except KeyboardInterrupt:
     pass
+
 
