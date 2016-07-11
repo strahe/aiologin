@@ -89,7 +89,7 @@ aiologin.setup(
     app=app,
     auth_by_header=auth_by_header,
     auth_by_session=auth_by_session,
-    login_signal=[message, second_message,bad_message],
+    login_signal=[message, second_message],
     logout_signal=[third_message],
     secured_signal=[fourth_message]
 )
