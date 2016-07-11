@@ -101,7 +101,9 @@ class AioLogin:
                     isinstance(callback, asyncio.Future):
                 yield from callback()
             else:
-                print("there was a non coroutine function in here")
+                # not sure what type of exact error to raise, but this one looks
+                # good
+                raise TypeError
 
     @asyncio.coroutine
     def send_logout_signal(self):
@@ -110,7 +112,9 @@ class AioLogin:
                     isinstance(callback, asyncio.Future):
                 yield from callback()
             else:
-                print("there was a non coroutine function in here")
+                # not sure what type of exact error to raise, but this one looks
+                # good
+                raise TypeError
 
     @asyncio.coroutine
     def login(self, user, remember):
@@ -200,6 +204,7 @@ def secured(func):
     @asyncio.coroutine
     def wrapper(*args, **kwargs):
         request = kwargs['request'] if 'request' in kwargs else args[0]
+        yield from request.aiologin.send_secured_signal()
         kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
         if not isinstance(request, Request):
             request = args[0].request
@@ -209,7 +214,6 @@ def secured(func):
             return (yield from func(*args, **kwargs))
 
         user = yield from request.aiologin.auth_by_header()
-        yield from user.send_logout_signal()
         if user is None:
             user = yield from request.aiologin.auth_by_session()
         if user is None:
