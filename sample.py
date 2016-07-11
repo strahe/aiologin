@@ -40,25 +40,31 @@ async def auth_by_form(request, email, password):
 
 
 @asyncio.coroutine
-def message():
+def first_message(request):
     print("practice signal for login attempt")
 
 
 @asyncio.coroutine
-def second_message():
+def second_message(request):
     print("this is the second message added to the login signaler")
 
 
 @asyncio.coroutine
-def third_message():
+def third_message(request):
     print("this is the logout message")
 
 
 @asyncio.coroutine
-def fourth_message():
-    print("This is message is for the secured route")
+def fourth_message(request):
+    print("This is message prints for a generic security success")
 
+@asyncio.coroutine
+def fifth_message(request):
+    print("This is message prints only when auth_by_header was successful")
 
+@asyncio.coroutine
+def sixth_message(request):
+    print("This is message prints only when auth_by_session was successful")
 @aiologin.secured
 async def handler(request):
     return web.Response(body=b'OK')
@@ -85,9 +91,11 @@ aiologin.setup(
     app=app,
     auth_by_header=auth_by_header,
     auth_by_session=auth_by_session,
-    login_signal=[message, second_message],
+    login_signal=[first_message, second_message],
     logout_signal=[third_message],
-    secured_signal=[fourth_message]
+    secured_signal=[fourth_message],
+    auth_by_header_signal=[fifth_message],
+    auth_by_session_signal=[sixth_message]
 )
 
 app.router.add_route('GET', '/', handler)
