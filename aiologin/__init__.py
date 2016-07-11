@@ -67,7 +67,8 @@ class AioLogin:
                  auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
                  anonymous_user=AnonymousUser, session=get_session,
-                 login_signal=[], logout_signal=[], secured_signal=[]):
+                 login_signal=[], logout_signal=[], secured_signal=[],
+                 auth_by_header_signal=[], auth_by_session_signal=[]):
         self._request = request
         self._disabled = disabled
         self._session_name = session_name
@@ -79,41 +80,56 @@ class AioLogin:
         self._auth_by_session = auth_by_session
         self._unauthorized = unauthorized
         self._forbidden = forbidden
+
         self._login_signal = login_signal
         self._logout_signal = logout_signal
         self._secured_signal = secured_signal
+        self._auth_by_header_signal = auth_by_header_signal
+        self._auth_by_session_signal = auth_by_session_signal
 
     @asyncio.coroutine
-    def send_login_signal(self):
-        for callback in self._login_signal:
+    def auth_by_session_signal(self,request):
+        for callback in self._auth_by_session_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
                 yield from callback()
             else:
-                # not sure what type of exact error to raise, but this one looks
-                # good
                 raise TypeError
 
     @asyncio.coroutine
-    def send_secured_signal(self):
+    def auth_by_header_signal(self, request):
+        for callback in self._auth_by_header_signal:
+            if asyncio.iscoroutinefunction(callback) or \
+                    isinstance(callback, asyncio.Future):
+                yield from callback(request)
+            else:
+                raise TypeError
+
+    @asyncio.coroutine
+    def login_signal(self, user):
+        for callback in self._login_signal:
+            if asyncio.iscoroutinefunction(callback) or \
+                    isinstance(callback, asyncio.Future):
+                yield from callback(user)
+            else:
+                raise TypeError
+
+    @asyncio.coroutine
+    def secured_signal(self,user):
         for callback in self._secured_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
                 yield from callback()
             else:
-                # not sure what type of exact error to raise, but this one looks
-                # good
                 raise TypeError
 
     @asyncio.coroutine
-    def send_logout_signal(self):
+    def logout_signal(self, session):
         for callback in self._logout_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
-                yield from callback()
+                yield from callback(session)
             else:
-                # not sure what type of exact error to raise, but this one looks
-                # good
                 raise TypeError
 
     @asyncio.coroutine
@@ -126,22 +142,23 @@ class AioLogin:
             "Expected 'bool' type for {} but received {}".format(
                 remember, type(remember)
             )
-        yield from self.send_login_signal()
         session = yield from self._session(self._request)
         session['remember'] = remember
         session[self._session_name] = dict(user)
+        yield from self.login_signal(user)
 
     @asyncio.coroutine
     def logout(self):
-        yield from self.send_logout_signal()
         session = yield from self._session(self._request)
         session.invalidate()
+        yield from self.logout_signal(session)
 
     @asyncio.coroutine
     def auth_by_header(self):
         key = self._request.headers.get('AUTHORIZATION', None)
         if key is None:
             return None
+        yield from self.auth_by_header_signal(key)
         return (yield from self._auth_by_header(self._request, key))
 
     @asyncio.coroutine
@@ -150,12 +167,11 @@ class AioLogin:
         profile = session.get(self._session_name, None)
         if profile is None:
             return None
-
         user = yield from self._auth_by_session(self._request, profile)
         if user is None:
             return None
-
         session.changed()
+        yield from self.auth_by_session_signal(session)
         return user
 
     @property
@@ -201,7 +217,6 @@ def secured(func):
     @asyncio.coroutine
     def wrapper(*args, **kwargs):
         request = kwargs['request'] if 'request' in kwargs else args[0]
-        yield from request.aiologin.send_secured_signal()
         kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
         if not isinstance(request, Request):
             request = args[0].request
@@ -223,8 +238,8 @@ def secured(func):
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if user.forbidden:
             return (yield from request.aiologin.forbidden(*args, **kwargs))
-
         request.current_user = user
+        yield from request.aiologin.secured_signal(user)
         return (yield from func(*args, **kwargs))
 
     return wrapper
