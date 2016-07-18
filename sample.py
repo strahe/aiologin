@@ -5,6 +5,7 @@ from urllib.parse import parse_qs
 
 from aiohttp import web
 from aiohttp_session import session_middleware, SimpleCookieStorage
+
 import aiologin
 
 
@@ -38,9 +39,35 @@ async def auth_by_form(request, email, password):
     return None
 
 
+@asyncio.coroutine
+def first_message(request):
+    print("practice signal for login attempt")
+
+
+@asyncio.coroutine
+def second_message(request):
+    print("this is the second message added to the login signaler")
+
+
+@asyncio.coroutine
+def third_message(request):
+    print("this is the logout message")
+
+
+@asyncio.coroutine
+def fourth_message(request):
+    print("This is message prints for a generic security success")
+
+@asyncio.coroutine
+def fifth_message(request):
+    print("This is message prints only when auth_by_header was successful")
+
+@asyncio.coroutine
+def sixth_message(request):
+    print("This is message prints only when auth_by_session was successful")
+
 @aiologin.secured
 async def handler(request):
-    # print(await request.aiologin.current_user())
     return web.Response(body=b'OK')
 
 
@@ -62,8 +89,15 @@ app = web.Application(middlewares=[
     session_middleware(SimpleCookieStorage())
     ])
 aiologin.setup(
-    app=app, auth_by_header=auth_by_header, auth_by_session=auth_by_session
-    )
+    app=app,
+    auth_by_header=auth_by_header,
+    auth_by_session=auth_by_session,
+    login_signal=[first_message, second_message],
+    logout_signal=[third_message],
+    secured_signal=[fourth_message],
+    auth_by_header_signal=[fifth_message],
+    auth_by_session_signal=[sixth_message]
+)
 
 app.router.add_route('GET', '/', handler)
 app.router.add_route('GET', '/login', login)
@@ -77,8 +111,11 @@ async def init(loop, app):
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop, app))
+
+
 try:
     loop.run_forever()
 except KeyboardInterrupt:
     pass
+
 
