@@ -47,13 +47,13 @@ class AnonymousUser(AbstractUser):
 # noinspection PyUnusedLocal
 @asyncio.coroutine
 def _unauthorized(*args, **kwargs):
-    return web.Response(status=401, body=b'Unauthorized')
+    raise web.HTTPUnauthorized()
 
 
 # noinspection PyUnusedLocal
 @asyncio.coroutine
 def _forbidden(*args, **kwargs):
-    return web.Response(status=403, body=b'Forbidden')
+    raise web.HTTPForbidden()
 
 
 # noinspection PyUnusedLocal
