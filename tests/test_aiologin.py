@@ -5,6 +5,7 @@ from urllib.parse import parse_qs
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp_session import session_middleware, SimpleCookieStorage
+
 import aiologin
 
 
