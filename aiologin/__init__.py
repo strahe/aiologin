@@ -62,12 +62,22 @@ def _void(*args, **kwargs):
     raise NotImplemented()
 
 
+class Signal:
+    def __init__(self, name):
+        name.lower()
+        if name == "login" or name == "signal" or name == "secured" \
+                or name == "auth_by_header" or name == "auth_by_session":
+            self.name = name
+        else:
+            raise ValueError
+
+
 class AioLogin:
     def __init__(self, request, session_name=AIOLOGIN_KEY, disabled=False,
                  auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
                  anonymous_user=AnonymousUser, session=get_session,
-                 login_signal=[], logout_signal=[], secured_signal=[],
+                 login_signal=Signal, logout_signal=[], secured_signal=[],
                  auth_by_header_signal=[], auth_by_session_signal=[]):
         self._request = request
         self._disabled = disabled
@@ -86,6 +96,8 @@ class AioLogin:
         self._secured_signal = secured_signal
         self._auth_by_header_signal = auth_by_header_signal
         self._auth_by_session_signal = auth_by_session_signal
+
+        self._signals = Signal
 
     @asyncio.coroutine
     def signal_auth_by_session(self, request):

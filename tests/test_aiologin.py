@@ -121,6 +121,7 @@ def test_app_setup_bad(loop):
     app.router.add_route('GET', '/logout', logout)
     return app
 
+
 @asyncio.coroutine
 def first_message(request):
     print("signal_login: success")
@@ -134,6 +135,8 @@ def second_message(request):
 def bad_message(request):
     # this should not print
     print("non_coroutine_message :fail")
+
+
 @asyncio.coroutine
 def third_message(request):
     print("signal_logout: success")
