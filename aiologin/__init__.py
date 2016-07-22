@@ -63,11 +63,53 @@ def _void(*args, **kwargs):
 
 
 class Signal:
-    def __init__(self, name):
-        name.lower()
-        if name == "login" or name == "signal" or name == "secured" \
-                or name == "auth_by_header" or name == "auth_by_session":
-            self.name = name
+    def __init__(self):
+        self._login_signal = []
+        self._logout_signal = []
+        self._secured_signal = []
+        self._auth_by_header_signal = []
+        self._auth_by_session_signal = []
+    #     name.lower()
+    #     self.signal = []
+    #     if name == "login" or name == "logout" or name == "secured" \
+    #             or name == "auth_by_header" or name == "auth_by_session":
+    #         self.name = name
+    #     else:
+    #         raise ValueError
+
+    def add_signal(self, signal, location):
+        if not asyncio.iscoroutinefunction(signal) or \
+                    isinstance(signal, asyncio.Future):
+            raise TypeError
+        if location == "login":
+            self._login_signal = signal
+        elif location == "logout":
+            self._logout_signal = signal
+        elif location == "secured":
+            self._secured_signal = signal
+        elif location == "auth_by_header":
+            self._auth_by_header_signal = signal
+        elif location == "auth_by_session":
+            self._auth_by_session_signal = signal
+        else:
+            raise ValueError
+
+    def call_signal(self,name):
+        if name == "login":
+            for callback in self._login_signal:
+                    yield from callback
+        elif name == "logout":
+            for callback in self._logout_signal:
+                    yield from callback
+        elif name == "secured":
+            for callback in self._secured_signal:
+                    yield from callback
+        elif name == "auth_by_header":
+            for callback in self._auth_by_header_signal:
+                    yield from callback
+        elif name == "auth_by_session":
+            for callback in self._auth_by_session_signal:
+                    yield from callback
         else:
             raise ValueError
 
