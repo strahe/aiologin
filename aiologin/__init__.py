@@ -6,6 +6,7 @@ from aiohttp import web
 from aiohttp.web_reqrep import Request
 from aiohttp_session import get_session
 
+
 AIOLOGIN_KEY = '__aiologin__'
 
 
@@ -63,7 +64,22 @@ def _void(*args, **kwargs):
 
 
 class Signal:
-    def __init__(self):
+    def __init__(self, name, signal):
+        name.lower()
+        if not asyncio.iscoroutinefunction(signal):
+            raise TypeError
+        if name == "login":
+            self._login_signal = [signal]
+        elif name == "logout":
+            self._logout_signal = [signal]
+        elif name == "secured":
+            self._secured_signal = [signal]
+        elif name == "auth_by_header":
+            self._auth_by_header_signal = [signal]
+        elif name == "auth_by_session":
+            self._auth_by_session_signal = [signal]
+        else:
+            raise ValueError
         self._login_signal = []
         self._logout_signal = []
         self._secured_signal = []
@@ -94,7 +110,7 @@ class Signal:
         else:
             raise ValueError
 
-    def call_signal(self,name):
+    def call_signal(self, name):
         if name == "login":
             for callback in self._login_signal:
                     yield from callback

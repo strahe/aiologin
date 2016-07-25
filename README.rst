@@ -161,7 +161,8 @@ as follows:
 
 Signals
 -------
-
+Right now the signals are provisional only. To create a signal make a asycn
+function and insert it into the app
 
 TODOs
 -----
