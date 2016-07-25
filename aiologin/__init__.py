@@ -64,53 +64,40 @@ def _void(*args, **kwargs):
 
 
 class Signal:
-    def __init__(self, name, signal):
-        name.lower()
-        if not asyncio.iscoroutinefunction(signal):
-            raise TypeError
-        if name == "login":
-            self._login_signal = [signal]
-        elif name == "logout":
-            self._logout_signal = [signal]
-        elif name == "secured":
-            self._secured_signal = [signal]
-        elif name == "auth_by_header":
-            self._auth_by_header_signal = [signal]
-        elif name == "auth_by_session":
-            self._auth_by_session_signal = [signal]
-        else:
-            raise ValueError
+    def __init__(self):
         self._login_signal = []
         self._logout_signal = []
         self._secured_signal = []
         self._auth_by_header_signal = []
         self._auth_by_session_signal = []
-    #     name.lower()
-    #     self.signal = []
-    #     if name == "login" or name == "logout" or name == "secured" \
-    #             or name == "auth_by_header" or name == "auth_by_session":
-    #         self.name = name
-    #     else:
-    #         raise ValueError
 
-    def add_signal(self, signal, location):
-        if not asyncio.iscoroutinefunction(signal) or \
-                    isinstance(signal, asyncio.Future):
+    @staticmethod
+    def check_signal(signal):
+        if not asyncio.iscoroutinefunction(signal):
             raise TypeError
-        if location == "login":
-            self._login_signal = signal
-        elif location == "logout":
-            self._logout_signal = signal
-        elif location == "secured":
-            self._secured_signal = signal
-        elif location == "auth_by_header":
-            self._auth_by_header_signal = signal
-        elif location == "auth_by_session":
-            self._auth_by_session_signal = signal
-        else:
-            raise ValueError
 
-    def call_signal(self, name):
+    def add_login_signal(self, signal, *args, **kwargs):
+        Signal.check_signal(signal)
+        self._login_signal.append(signal)
+
+    def add_logout_signal(self, signal, *args, **kwargs):
+        Signal.check_signal(signal)
+        self._logout_signal += signal
+
+    def add_secured_signal(self, signal, *args, **kwargs):
+        Signal.check_signal(signal)
+        self._secured_signal += signal
+
+    def add_auth_by_header_signal(self, signal, *args, **kwargs):
+        Signal.check_signal(signal)
+        self._auth_by_header_signal += signal
+
+    def add_auth_by_session_signal(self, signal, *args, **kwargs):
+        Signal.check_signal(signal)
+        self._auth_by_session_signal += signal
+
+    def send(self, name):
+        print("in the send")
         if name == "login":
             for callback in self._login_signal:
                     yield from callback
@@ -135,8 +122,9 @@ class AioLogin:
                  auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
                  anonymous_user=AnonymousUser, session=get_session,
-                 login_signal=Signal, logout_signal=[], secured_signal=[],
-                 auth_by_header_signal=[], auth_by_session_signal=[]):
+                 signal=Signal, login_signal=[], logout_signal=[],
+                 secured_signal=[], auth_by_header_signal=[],
+                 auth_by_session_signal=[]):
         self._request = request
         self._disabled = disabled
         self._session_name = session_name
@@ -155,14 +143,14 @@ class AioLogin:
         self._auth_by_header_signal = auth_by_header_signal
         self._auth_by_session_signal = auth_by_session_signal
 
-        self._signals = Signal
+        self._signals = signal
 
     @asyncio.coroutine
     def signal_auth_by_session(self, request):
         for callback in self._auth_by_session_signal:
             if asyncio.iscoroutinefunction(callback) or \
                     isinstance(callback, asyncio.Future):
-                yield from callback(request)
+                        callback(request)
             else:
                 raise TypeError
 
@@ -217,7 +205,7 @@ class AioLogin:
         session[self._session_name] = dict(user)
         # session = request object
         yield from self.signal_login(session)
-
+        self._signals.send("login")
     @asyncio.coroutine
     def logout(self):
         session = yield from self._session(self._request)

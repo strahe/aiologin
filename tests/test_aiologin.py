@@ -7,7 +7,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp_session import session_middleware, SimpleCookieStorage
 
 import aiologin
-
+from aiologin import Signal
 
 class User(aiologin.AbstractUser):
     # User classes should have attributes to be identified with, in this case
@@ -56,6 +56,10 @@ async def handler(request):
     return web.Response(body=b'OK')
 
 
+@asyncio.coroutine
+def new_signal_message(request):
+    print("new login signal----------:works")
+
 async def login(request):
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
@@ -72,10 +76,14 @@ async def logout(request):
 
 
 def test_app_setup(loop):
+    signal = Signal()
+    signal.add_login_signal(new_signal_message)
     app = web.Application(loop=loop, middlewares=[
         session_middleware(SimpleCookieStorage())
     ])
+
     aiologin.setup(
+        signal=signal,
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
@@ -113,12 +121,12 @@ def test_app_setup_bad(loop):
 
 @asyncio.coroutine
 def first_message(request):
-    print("signal_login: success")
+    print("signal_login: success"+"\n")
 
 
 @asyncio.coroutine
 def second_message(request):
-    print("two messages in one signaler: success")
+    print("two messages in one signaler: success"+"\n")
 
 
 def bad_message(request):
@@ -128,22 +136,22 @@ def bad_message(request):
 
 @asyncio.coroutine
 def third_message(request):
-    print("signal_logout: success")
+    print("signal_logout: success"+"\n")
 
 
 @asyncio.coroutine
 def fourth_message(request):
-    print("signal_secured: success")
+    print("signal_secured: success"+"\n")
 
 
 @asyncio.coroutine
 def fifth_message(request):
-    print("signal_auth_by_header: success")
+    print("signal_auth_by_header: success"+"\n")
 
 
 @asyncio.coroutine
 def sixth_message(request):
-    print("signal_auth_by_session: success")
+    print("signal_auth_by_session: success"+"\n")
 
 
 class TestAioLogin(AioHTTPTestCase):
