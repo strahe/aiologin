@@ -7,7 +7,7 @@ from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp_session import session_middleware, SimpleCookieStorage
 
 import aiologin
-from aiologin import Signal
+
 
 class User(aiologin.AbstractUser):
     # User classes should have attributes to be identified with, in this case
@@ -56,10 +56,6 @@ async def handler(request):
     return web.Response(body=b'OK')
 
 
-@asyncio.coroutine
-def new_signal_message(request):
-    print("new login signal----------:works")
-
 async def login(request):
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
@@ -76,23 +72,15 @@ async def logout(request):
 
 
 def test_app_setup(loop):
-    signal = Signal()
-    signal.add_login_signal(new_signal_message)
     app = web.Application(loop=loop, middlewares=[
         session_middleware(SimpleCookieStorage())
     ])
-
     aiologin.setup(
-        signal=signal,
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
-        login_signal=[first_message, second_message],
-        logout_signal=[third_message],
-        secured_signal=[fourth_message],
-        auth_by_header_signal=[fifth_message],
-        auth_by_session_signal=[sixth_message]
     )
+    aiologin.signal_logout.append('test')
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
@@ -107,11 +95,6 @@ def test_app_setup_bad(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
-        login_signal=[bad_message, bad_message],
-        logout_signal=[bad_message],
-        secured_signal=[bad_message],
-        auth_by_header_signal=[bad_message],
-        auth_by_session_signal=[bad_message]
     )
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
@@ -121,12 +104,12 @@ def test_app_setup_bad(loop):
 
 @asyncio.coroutine
 def first_message(request):
-    print("signal_login: success"+"\n")
+    print("signal_login: success")
 
 
 @asyncio.coroutine
 def second_message(request):
-    print("two messages in one signaler: success"+"\n")
+    print("two messages in one signaler: success")
 
 
 def bad_message(request):
@@ -136,22 +119,22 @@ def bad_message(request):
 
 @asyncio.coroutine
 def third_message(request):
-    print("signal_logout: success"+"\n")
+    print("signal_logout: success")
 
 
 @asyncio.coroutine
 def fourth_message(request):
-    print("signal_secured: success"+"\n")
+    print("signal_secured: success")
 
 
 @asyncio.coroutine
 def fifth_message(request):
-    print("signal_auth_by_header: success"+"\n")
+    print("signal_auth_by_header: success")
 
 
 @asyncio.coroutine
 def sixth_message(request):
-    print("signal_auth_by_session: success"+"\n")
+    print("signal_auth_by_session: success")
 
 
 class TestAioLogin(AioHTTPTestCase):
