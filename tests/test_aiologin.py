@@ -101,6 +101,7 @@ def test_app_setup_bad(loop):
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
     )
+    print('app1', id(aiologin))
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
@@ -221,31 +222,33 @@ class TestAioLogin(AioHTTPTestCase):
         self.loop.run_until_complete(test_login_home_route_after_logout())
 
 
-class TestBadSignal(AioHTTPTestCase):
-    def get_app(self, loop):
-        app = test_app_setup_bad(loop=loop)
-        return app
 
-    def setUp(self):
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-
-    def test_bad_signal(self):
-        async def test_bad_signal():
-            print("\n" + "7: testing what happens when a callback is added to a"
-                         " signal that wasn't a coroutine")
-            url = "/"
-            try:
-                resp = await self.client.request("GET", url)
-                print("non_coroutine_message: success")
-                print("test successful")
-                resp.close()
-            except TypeError:
-                print("non_coroutine_message: fail")
-
-        self.loop.run_until_complete(test_bad_signal())
+# class TestBadSignal(AioHTTPTestCase):
+#     def get_app(self, loop):
+#         app = test_app_setup_bad(loop=loop)
+#         print('app2', id(app))
+#         return app
+#
+#     def setUp(self):
+#         super().setUp()
+#
+#     def tearDown(self):
+#         super().tearDown()
+#
+#     def test_bad_signal(self):
+#         async def test_bad_signal():
+#             print("\n" + "7: testing what happens when a callback is added to a"
+#                          " signal that wasn't a coroutine")
+#             url = "/"
+#             try:
+#                 resp = await self.client.request("GET", url)
+#                 print("non_coroutine_message: success")
+#                 print("test successful")
+#                 resp.close()
+#             except TypeError:
+#                 print("non_coroutine_message: fail")
+#
+#         self.loop.run_until_complete(test_bad_signal())
 
 if __name__ == '__main__':
     unittest.main()

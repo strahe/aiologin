@@ -236,10 +236,15 @@ def secured(func):
             "Expected 'user' of type AbstractUser by got {}".format(type(user))
 
         if not user.authenticated:
+            # to be changed to a specific signal later
+            yield from send_secured_signals()
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if user.forbidden:
+            # to be changed to a specific signal later
+            yield from send_secured_signals()
             return (yield from request.aiologin.forbidden(*args, **kwargs))
         request.current_user = user
+        # to be changed to a specific signal later
         yield from send_secured_signals()
         return (yield from func(*args, **kwargs))
 
