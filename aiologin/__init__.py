@@ -29,13 +29,13 @@ class Signals(list):
 
 
 # make not mutable
-on_login = []
-on_logout = []
-on_secured = []
-on_auth_by_header = []
-on_auth_by_session = []
-on_forbidden = []
-on_unauthenticated = []
+# on_login = []
+# on_logout = []
+# on_secured = []
+# on_auth_by_header = []
+# on_auth_by_session = []
+# on_forbidden = []
+# on_unauthenticated = []
 
 
 def send(signals):
@@ -104,7 +104,11 @@ class AioLogin:
     def __init__(self, request, session_name=AIOLOGIN_KEY, disabled=False,
                  auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
-                 anonymous_user=AnonymousUser, session=get_session,):
+                 anonymous_user=AnonymousUser, session=get_session,
+                 on_login=None, on_logout=None, on_secured=None,
+                 on_forbidden=None, on_auth_by_header=None,
+                 on_unauthenticated=None, on_auth_by_session=None):
+
         self._request = request
         self._disabled = disabled
         self._session_name = session_name
@@ -117,13 +121,41 @@ class AioLogin:
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
-        self._on_login = AioLogin.Signals()
-        self._on_logout = AioLogin.Signals()
-        self._on_secured = AioLogin.Signals()
-        self._on_auth_by_header = AioLogin.Signals()
-        self._on_auth_by_session = AioLogin.Signals()
-        self._on_forbidden = AioLogin.Signals()
-        self._on_unauthorized = AioLogin.Signals()
+        if on_login is None:
+            self._on_login = Signals()
+        else:
+            self._on_login = on_login
+
+        if on_logout is None:
+            self._on_logout = Signals()
+        else:
+            self._on_logout = on_logout
+
+        if on_secured is None:
+            self._on_secured = Signals()
+        else:
+            self._on_secured = on_secured
+
+        if on_forbidden is None:
+            self._on_forbidden = Signals()
+        else:
+            self._on_forbidden = on_forbidden
+
+        if on_unauthenticated is None:
+            self._on_unauthenticated = Signals()
+        else:
+            self._on_unauthenticated = on_unauthenticated
+
+        if on_auth_by_header is None:
+            self._on_auth_by_header = Signals()
+        else:
+            self._on_auth_by_header = on_auth_by_header
+
+        if on_auth_by_session is None:
+            self._on_auth_by_session = Signals()
+        else:
+            self._on_auth_by_session = on_auth_by_session
+
 
 
     @asyncio.coroutine
@@ -140,14 +172,14 @@ class AioLogin:
         session['remember'] = remember
         session[self._session_name] = dict(user)
         # session = request object
-        yield from send(on_login)
+        yield from send(self._on_login)
 
     @asyncio.coroutine
     def logout(self):
         session = yield from self._session(self._request)
         session.invalidate()
         # session = request object
-        yield from send(on_logout)
+        yield from send(self._on_logout)
 
     @asyncio.coroutine
     def auth_by_header(self):
@@ -155,21 +187,23 @@ class AioLogin:
         if key is None:
             return None
         # session = request object
-        yield from send(on_auth_by_header)
+        yield from send(self._on_auth_by_header)
         return (yield from self._auth_by_header(self._request, key))
 
     @asyncio.coroutine
     def auth_by_session(self):
         session = yield from self._session(self._request)
         profile = session.get(self._session_name, None)
-        yield from send(on_auth_by_session)
         if profile is None:
+            yield from send(self._on_auth_by_session)
             return None
         user = yield from self._auth_by_session(self._request, profile)
         if user is None:
+            yield from send(self._on_auth_by_session)
             return None
         session.changed()
         # session = request object
+        yield from send(self._on_auth_by_session)
         return user
 
     @property
@@ -237,13 +271,12 @@ def secured(func):
             "Expected 'user' of type AbstractUser by got {}".format(type(user))
 
         if not user.authenticated:
-            yield from send(on_unauthenticated)
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if user.forbidden:
-            yield from send(on_forbidden)
+            # yield from send(on_forbidden)
             return (yield from request.aiologin.forbidden(*args, **kwargs))
         request.current_user = user
-        yield from send(on_secured)
+        # yield from send(on_secured)
         return (yield from func(*args, **kwargs))
 
     return wrapper
