@@ -80,7 +80,12 @@ def test_app_setup(loop):
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
     )
-    aiologin.signal_logout.append('test')
+    aiologin.on_login.append(login_message)
+    aiologin.on_login.append(second_message)
+    aiologin.on_logout.append(logout_message)
+    aiologin.on_secured.append(secured_message)
+    aiologin.on_auth_by_header.append(auth_by_header_message)
+    aiologin.on_auth_by_session.append(auth_by_session_message)
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
@@ -103,37 +108,37 @@ def test_app_setup_bad(loop):
 
 
 @asyncio.coroutine
-def first_message(request):
+def login_message():
     print("signal_login: success")
 
 
 @asyncio.coroutine
-def second_message(request):
+def second_message():
     print("two messages in one signaler: success")
 
 
-def bad_message(request):
+def bad_message():
     # this should not print
     print("non_coroutine_message :fail")
 
 
 @asyncio.coroutine
-def third_message(request):
+def logout_message():
     print("signal_logout: success")
 
 
 @asyncio.coroutine
-def fourth_message(request):
+def secured_message():
     print("signal_secured: success")
 
 
 @asyncio.coroutine
-def fifth_message(request):
+def auth_by_header_message(request):
     print("signal_auth_by_header: success")
 
 
 @asyncio.coroutine
-def sixth_message(request):
+def auth_by_session_message(request):
     print("signal_auth_by_session: success")
 
 

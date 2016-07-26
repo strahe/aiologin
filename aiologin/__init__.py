@@ -9,12 +9,22 @@ from aiohttp_session import get_session
 
 AIOLOGIN_KEY = '__aiologin__'
 
+#make not mutable
+on_login = []
+on_logout = []
+on_secured = []
+on_auth_by_header = []
+on_auth_by_session = []
 
-login_signal = []
-logout_signal = []
-secured_signal = []
-auth_by_header_signal = []
-auth_by_session_signal = []
+
+def send_login_signals():
+    # for callback in login_signal:
+    #     pass
+    #     if not asyncio.iscoroutinefunction(callback):
+    #         raise TypeError
+    #     else:
+    #         yield from callback
+    return on_login[0]()
 
 
 class AbstractUser(MutableMapping, metaclass=ABCMeta):
@@ -148,13 +158,14 @@ class AioLogin:
         session[self._session_name] = dict(user)
         # session = request object
         yield from self.signal_login(session)
+        yield from send_login_signals()
 
     @asyncio.coroutine
     def logout(self):
         session = yield from self._session(self._request)
         session.invalidate()
         # session = request object
-        yield from self.signal_logout(session)
+        yield from self.signal_login(session)
 
     @asyncio.coroutine
     def auth_by_header(self):
