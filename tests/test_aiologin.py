@@ -79,16 +79,27 @@ def test_app_setup(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
+        # new signals
+        on_login=[login_message, second_message],
+        on_logout=[logout_message],
+        on_secured=[second_message],
+        on_auth_by_session=[auth_by_session_message],
+        on_auth_by_header=[auth_by_header_message],
+        on_forbidden=[forbidden_message],
+        on_unauthenticated=[unauth_message]
     )
-    # print(app.middlewares)
-    aiologin.on_login.append(login_message)
-    aiologin.on_login.append(second_message)
-    aiologin.on_logout.append(logout_message)
-    aiologin.on_secured.append(secured_message)
-    aiologin.on_auth_by_header.append(auth_by_header_message)
-    aiologin.on_auth_by_session.append(auth_by_session_message)
-    aiologin.on_forbidden.append(forbidden_message)
-    aiologin.on_unauthenticated.append(unauth_message)
+
+    # current signals
+    # aiologin.on_login.append(login_message)
+    # aiologin.on_login.append(second_message)
+    # aiologin.on_logout.append(logout_message)
+    # aiologin.on_secured.append(secured_message)
+    # aiologin.on_auth_by_header.append(auth_by_header_message)
+    # aiologin.on_auth_by_session.append(auth_by_session_message)
+    # aiologin.on_forbidden.append(forbidden_message)
+    # aiologin.on_unauthenticated.append(unauth_message)
+    # aiologin.AioLogin._request.append(login_message)
+
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
@@ -140,9 +151,11 @@ def secured_message():
 def auth_by_header_message():
     print("signal_auth_by_header: success")
 
+
 @asyncio.coroutine
 def unauth_message():
     print("unauthorized message: success")
+
 
 @asyncio.coroutine
 def forbidden_message():
@@ -233,7 +246,6 @@ class TestAioLogin(AioHTTPTestCase):
         self.loop.run_until_complete(test_login_home_route_after_logout())
 
 
-
 # class TestBadSignal(AioHTTPTestCase):
 #     def get_app(self, loop):
 #         app = test_app_setup_bad(loop=loop)
@@ -248,8 +260,8 @@ class TestAioLogin(AioHTTPTestCase):
 #
 #     def test_bad_signal(self):
 #         async def test_bad_signal():
-#             print("\n" + "7: testing what happens when a callback is added to a"
-#                          " signal that wasn't a coroutine")
+#             print("\n" + "7: testing what happens when a callback is added to"
+#                          " a signal that wasn't a coroutine")
 #             url = "/"
 #             try:
 #                 resp = await self.client.request("GET", url)

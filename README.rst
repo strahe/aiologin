@@ -174,6 +174,7 @@ function and insert it into aiologin like so
 
 TODOs
 -----
+- secure the signals
 - Extended documentations
 - Stale user (required re-login) functionality
 

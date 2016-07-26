@@ -10,6 +10,23 @@ from aiohttp_session import get_session
 AIOLOGIN_KEY = '__aiologin__'
 
 
+class Signals(list):
+    def __init__(self):
+        super().__init__()
+
+    def get_signal(self):
+        return self.signal
+
+    def append(self, callback):
+        if not callback:
+            return
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            super().append(callback)
+
+    signal = property(get_signal, append)
+
 
 # make not mutable
 on_login = []
@@ -23,10 +40,7 @@ on_unauthenticated = []
 
 def send(signals):
     for callback in signals:
-        if not asyncio.iscoroutinefunction(callback):
-            raise TypeError
-        else:
-            yield from callback()
+        yield from callback()
 
 
 class AbstractUser(MutableMapping, metaclass=ABCMeta):
@@ -81,28 +95,16 @@ def _forbidden(*args, **kwargs):
 def _void(*args, **kwargs):
     raise NotImplemented()
 
+blue = list()
+blue.append('hello')
+
 
 class AioLogin:
-    class Signals(list):
-        def __init__(self):
-            self.signal = []
-
-        def get_signal(self):
-            return self.signal
-
-        def append(self, callback):
-            # if not asyncio.iscoroutinefunction(callback):
-            #     print(type(callback))
-            #     raise TypeError
-            # else:
-            super(AioLogin.Signals, self).append(callback)
-
-        signal = property(get_signal, append)
 
     def __init__(self, request, session_name=AIOLOGIN_KEY, disabled=False,
                  auth_by_header=_void, auth_by_session=_void,
                  forbidden=_forbidden, unauthorized=_unauthorized,
-                 anonymous_user=AnonymousUser, session=get_session):
+                 anonymous_user=AnonymousUser, session=get_session,):
         self._request = request
         self._disabled = disabled
         self._session_name = session_name
@@ -115,19 +117,14 @@ class AioLogin:
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
-        self._on_login = []
-        self._on_logout = []
-        self._on_secured = []
-        self._on_auth_by_header = []
-        self._on_auth_by_session = []
-        self._on_forbidden = []
-        self._on_unauthorized = []
+        self._on_login = AioLogin.Signals()
+        self._on_logout = AioLogin.Signals()
+        self._on_secured = AioLogin.Signals()
+        self._on_auth_by_header = AioLogin.Signals()
+        self._on_auth_by_session = AioLogin.Signals()
+        self._on_forbidden = AioLogin.Signals()
+        self._on_unauthorized = AioLogin.Signals()
 
-    def get__on_login(self):
-        return self._on_login
-
-    def set__on_login(self,callback):
-        self.on_login.append(callback)
 
     @asyncio.coroutine
     def login(self, user, remember):
