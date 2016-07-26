@@ -26,16 +26,6 @@ class Signals(list):
     signal = property(get_signal, append)
 
 
-# make not mutable
-# on_login = []
-# on_logout = []
-# on_secured = []
-# on_auth_by_header = []
-# on_auth_by_session = []
-# on_forbidden = []
-# on_unauthenticated = []
-
-
 def send(signals):
     for callback in signals:
         yield from callback()
@@ -92,9 +82,6 @@ def _forbidden(*args, **kwargs):
 @asyncio.coroutine
 def _void(*args, **kwargs):
     raise NotImplemented()
-
-blue = list()
-blue.append('hello')
 
 
 class AioLogin:
