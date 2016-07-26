@@ -154,8 +154,6 @@ class AioLogin:
         else:
             self._on_auth_by_session = on_auth_by_session
 
-
-
     @asyncio.coroutine
     def login(self, user, remember):
         assert isinstance(user, AbstractUser), \
@@ -269,13 +267,16 @@ def secured(func):
             "Expected 'user' of type AbstractUser by got {}".format(type(user))
 
         if not user.authenticated:
-            # yield from send(request.aiologin._on_unauthenticated)
+            # noinspection PyProtectedMember
+            yield from send(request.aiologin._on_unauthenticated)
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if user.forbidden:
-            # yield from send(on_forbidden)
+            # noinspection PyProtectedMember
+            yield from send(request.aiologin._on_forbidden)
             return (yield from request.aiologin.forbidden(*args, **kwargs))
         request.current_user = user
-        # yield from send(on_secured)
+        # noinspection PyProtectedMember
+        yield from send(request.aiologin._on_secured)
         return (yield from func(*args, **kwargs))
 
     return wrapper

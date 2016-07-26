@@ -82,7 +82,7 @@ def test_app_setup(loop):
         # adding signals
         on_login=[login_message, second_message],
         on_logout=[logout_message],
-        on_secured=[second_message],
+        on_secured=[secured_message],
         on_auth_by_session=[auth_by_session_message],
         on_auth_by_header=[auth_by_header_message],
         on_forbidden=[forbidden_message],
