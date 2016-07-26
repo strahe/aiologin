@@ -9,22 +9,55 @@ from aiohttp_session import get_session
 
 AIOLOGIN_KEY = '__aiologin__'
 
-#make not mutable
+# make not mutable
 on_login = []
 on_logout = []
 on_secured = []
 on_auth_by_header = []
 on_auth_by_session = []
+# add these two later
+on_forbidden = []
+on_unauthorized = []
 
 
 def send_login_signals():
-    # for callback in login_signal:
-    #     pass
-    #     if not asyncio.iscoroutinefunction(callback):
-    #         raise TypeError
-    #     else:
-    #         yield from callback
-    return on_login[0]()
+    for callback in on_login:
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            yield from callback()
+
+
+def send_logout_signals():
+    for callback in on_logout:
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            yield from callback()
+
+
+def send_secured_signals():
+    for callback in on_secured:
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            yield from callback()
+
+
+def send_auth_by_header_signals():
+    for callback in on_auth_by_header:
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            yield from callback()
+
+
+def send_auth_by_session_signals():
+    for callback in on_auth_by_session:
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError
+        else:
+            yield from callback()
 
 
 class AbstractUser(MutableMapping, metaclass=ABCMeta):
@@ -97,52 +130,6 @@ class AioLogin:
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
-        self._login_signal = []
-        self._logout_signal = []
-        self._secured_signal = []
-        self._auth_by_header_signal = []
-        self._auth_by_session_signal = []
-
-    @asyncio.coroutine
-    def signal_auth_by_session(self, request):
-        for callback in self._auth_by_session_signal:
-            if asyncio.iscoroutinefunction(callback):
-                yield from callback(request)
-            else:
-                raise TypeError
-
-    @asyncio.coroutine
-    def signal_auth_by_header(self, request):
-        for callback in self._auth_by_header_signal:
-            if asyncio.iscoroutinefunction(callback):
-                yield from callback(request)
-            else:
-                raise TypeError
-
-    @asyncio.coroutine
-    def signal_login(self, request):
-        for callback in self._login_signal:
-            if asyncio.iscoroutinefunction(callback):
-                yield from callback(request)
-            else:
-                raise TypeError
-
-    @asyncio.coroutine
-    def signal_secured(self, request):
-        for callback in self._secured_signal:
-            if asyncio.iscoroutinefunction(callback):
-                yield from callback(request)
-            else:
-                raise TypeError
-
-    @asyncio.coroutine
-    def signal_logout(self, request):
-        for callback in self._logout_signal:
-            if asyncio.iscoroutinefunction(callback):
-                yield from callback(request)
-            else:
-                raise TypeError
-
     @asyncio.coroutine
     def login(self, user, remember):
         assert isinstance(user, AbstractUser), \
@@ -157,7 +144,6 @@ class AioLogin:
         session['remember'] = remember
         session[self._session_name] = dict(user)
         # session = request object
-        yield from self.signal_login(session)
         yield from send_login_signals()
 
     @asyncio.coroutine
@@ -165,7 +151,7 @@ class AioLogin:
         session = yield from self._session(self._request)
         session.invalidate()
         # session = request object
-        yield from self.signal_login(session)
+        yield from send_logout_signals()
 
     @asyncio.coroutine
     def auth_by_header(self):
@@ -173,7 +159,7 @@ class AioLogin:
         if key is None:
             return None
         # session = request object
-        yield from self.signal_auth_by_header(self._request)
+        yield from send_auth_by_header_signals()
         return (yield from self._auth_by_header(self._request, key))
 
     @asyncio.coroutine
@@ -187,7 +173,6 @@ class AioLogin:
             return None
         session.changed()
         # session = request object
-        yield from self.signal_auth_by_session(session)
         return user
 
     @property
@@ -255,7 +240,7 @@ def secured(func):
         if user.forbidden:
             return (yield from request.aiologin.forbidden(*args, **kwargs))
         request.current_user = user
-        yield from request.aiologin.signal_secured(request)
+        yield from send_secured_signals()
         return (yield from func(*args, **kwargs))
 
     return wrapper
