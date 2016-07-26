@@ -162,15 +162,27 @@ as follows:
 Signals
 -------
 Right now the signals are provisional only. To create a signal make a asyncio
-function and insert it into aiologin like so
+function and insert it into aiologin via the setup method. So far the list of
+events we send signals for are:
+
+- on_login
+- on_logout
+- on_secured
+- on_forbidden
+- on_unauthenticated
+- on_auth_by_header
+- on_auth_by_session
+
 
 .. code:: Python
 
     @asyncio.coroutine
     def login_message():
         print("login signal")
+    aiologin.setup(
+    #other setup code
+    on_login=[login_message])
 
-    aiologin.on_login.append(login_message)
 
 TODOs
 -----
