@@ -18,8 +18,6 @@ class Signals(list):
         return self.signal
 
     def append(self, callback):
-        if not callback:
-            return
         if not asyncio.iscoroutinefunction(callback):
             raise TypeError
         else:
@@ -271,6 +269,7 @@ def secured(func):
             "Expected 'user' of type AbstractUser by got {}".format(type(user))
 
         if not user.authenticated:
+            # yield from send(request.aiologin._on_unauthenticated)
             return (yield from request.aiologin.unauthorized(*args, **kwargs))
         if user.forbidden:
             # yield from send(on_forbidden)
