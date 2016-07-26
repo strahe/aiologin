@@ -161,8 +161,16 @@ as follows:
 
 Signals
 -------
-Right now the signals are provisional only. To create a signal make a asycn
-function and insert it into the app
+Right now the signals are provisional only. To create a signal make a asyncio
+function and insert it into aiologin like so
+
+.. code:: Python
+
+    @asyncio.coroutine
+    def login_message():
+        print("login signal")
+
+    aiologin.on_login.append(login_message)
 
 TODOs
 -----

@@ -10,7 +10,19 @@ from aiohttp_session import get_session
 AIOLOGIN_KEY = '__aiologin__'
 
 # make not mutable
-on_login = []
+
+
+def get_signal(self):
+    return self.signal
+
+
+def append(self, callback):
+    if not asyncio.iscoroutinefunction(callback):
+        raise TypeError
+    else:
+        self.signal.append(callback)
+
+on_login = property(get_signal, append)
 on_logout = []
 on_secured = []
 on_auth_by_header = []
@@ -18,6 +30,7 @@ on_auth_by_session = []
 # add these two later
 on_forbidden = []
 on_unauthorized = []
+
 
 
 def send_login_signals():
