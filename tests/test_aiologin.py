@@ -80,12 +80,15 @@ def test_app_setup(loop):
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
     )
+    # print(app.middlewares)
     aiologin.on_login.append(login_message)
     aiologin.on_login.append(second_message)
     aiologin.on_logout.append(logout_message)
     aiologin.on_secured.append(secured_message)
     aiologin.on_auth_by_header.append(auth_by_header_message)
     aiologin.on_auth_by_session.append(auth_by_session_message)
+    aiologin.on_forbidden.append(forbidden_message)
+    aiologin.on_unauthenticated.append(unauth_message)
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
@@ -134,12 +137,20 @@ def secured_message():
 
 
 @asyncio.coroutine
-def auth_by_header_message(request):
+def auth_by_header_message():
     print("signal_auth_by_header: success")
+
+@asyncio.coroutine
+def unauth_message():
+    print("unauthorized message: success")
+
+@asyncio.coroutine
+def forbidden_message():
+    print("forbidden_message: success")
 
 
 @asyncio.coroutine
-def auth_by_session_message(request):
+def auth_by_session_message():
     print("signal_auth_by_session: success")
 
 
