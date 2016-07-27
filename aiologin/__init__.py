@@ -10,9 +10,8 @@ from aiohttp_session import get_session
 AIOLOGIN_KEY = '__aiologin__'
 
 
-class Signals(list):
+class Signals:
     def __init__(self):
-        super().__init__()
         self.signals = []
 
     def get_signals(self):
