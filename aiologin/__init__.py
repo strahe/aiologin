@@ -19,8 +19,7 @@ class Signals(list):
         return self.signals
 
     def append(self, callback):
-        # this raises an error for now, later it should wrap the function in a
-        # future
+        #TODO make a wraper for non async functions to become futures
         if not asyncio.iscoroutinefunction(callback):
             raise TypeError()
         else:
