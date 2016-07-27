@@ -13,21 +13,23 @@ AIOLOGIN_KEY = '__aiologin__'
 class Signals(list):
     def __init__(self):
         super().__init__()
+        self.signals = []
 
-    def get_signal(self):
-        return self.signal
+    def get_signals(self):
+        return self.signals
 
     def append(self, callback):
         if not asyncio.iscoroutinefunction(callback):
-            raise TypeError()
+            raise TypeError("not a cortoute")
         else:
-            super().append(callback)
+            self.signals.append(callback)
 
-    signal = property(get_signal, append)
+    Signals = property(get_signals, append)
 
 
 def send(signals):
-    for callback in signals:
+    sig_list = signals.get_signals()
+    for callback in sig_list:
         yield from callback()
 
 
@@ -121,39 +123,39 @@ class AioLogin:
             raise TypeError()
 
         if on_logout is not None and isinstance(on_logout, list):
-            for callback in on_login:
+            for callback in on_logout:
                 self._on_logout.append(callback)
         else:
             raise TypeError()
 
         if on_secured is not None and isinstance(on_secured, list):
-            for callback in on_login:
-                self._on_logout.append(callback)
+            for callback in on_secured:
+                self._on_secured.append(callback)
         else:
             raise TypeError()
 
         if on_forbidden is not None and isinstance(on_forbidden, list):
-            for callback in on_login:
+            for callback in on_forbidden:
                 self._on_forbidden.append(callback)
         else:
             raise TypeError()
 
         if on_auth_by_header is not None and isinstance(on_auth_by_header,list):
-            for callback in on_login:
+            for callback in on_auth_by_header:
                 self._on_auth_by_header.append(callback)
         else:
             raise TypeError()
 
         if on_unauthenticated is not None and isinstance(on_unauthenticated,
                                                          list):
-            for callback in on_login:
+            for callback in on_unauthenticated:
                 self._on_unauthenticated.append(callback)
         else:
             raise TypeError()
 
         if on_auth_by_session is not None and isinstance(on_auth_by_session,
                                                          list):
-            for callback in on_login:
+            for callback in on_auth_by_session:
                 self._on_auth_by_session.append(callback)
         else:
             raise TypeError()
