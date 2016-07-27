@@ -122,11 +122,6 @@ def second_login_message():
     print("second_login_signal: success")
 
 
-def bad_message():
-    # this should not print
-    print("non_coroutine_message :fail")
-
-
 @asyncio.coroutine
 def logout_message():
     print("signal_logout: success")
@@ -186,7 +181,7 @@ class TestAioLogin(AioHTTPTestCase):
         async def test_login_bad():
             print("\n"+"2: testing a bad login attempt")
             url = "/login?email=BadTest@BadUser.com&password=bad"
-            # this only class the login method above and returns from there
+            # this only calls the login method above and returns from there
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 401)
             text = await resp.text()
