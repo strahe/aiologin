@@ -80,7 +80,7 @@ def test_app_setup(loop):
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
         # provisional signals
-        on_login=[login_message, second_message],
+        on_login=[login_message, second_login_message],
         on_logout=[logout_message],
         on_secured=[secured_message],
         on_auth_by_session=[auth_by_session_message],
@@ -103,7 +103,7 @@ def test_app_setup_bad(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
-        on_logout=[bad_message]
+        on_logout=[login_message]
     )
     print('app1', id(aiologin))
     app.router.add_route('GET', '/', handler)
@@ -118,8 +118,8 @@ def login_message():
 
 
 @asyncio.coroutine
-def second_message():
-    print("two messages in one signaler: success")
+def second_login_message():
+    print("second_login_signal: success")
 
 
 def bad_message():
@@ -144,12 +144,12 @@ def auth_by_header_message():
 
 @asyncio.coroutine
 def unauth_message():
-    print("unauthorized message: success")
+    print("signal_unauthorized: success")
 
 
 @asyncio.coroutine
 def forbidden_message():
-    print("forbidden_message: success")
+    print("signal_forbidden: success")
 
 
 @asyncio.coroutine
@@ -186,6 +186,7 @@ class TestAioLogin(AioHTTPTestCase):
         async def test_login_bad():
             print("\n"+"2: testing a bad login attempt")
             url = "/login?email=BadTest@BadUser.com&password=bad"
+            # this only class the login method above and returns from there
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 401)
             text = await resp.text()
@@ -235,31 +236,5 @@ class TestAioLogin(AioHTTPTestCase):
             resp.close()
         self.loop.run_until_complete(test_login_home_route_after_logout())
 
-
-class TestAioLoginBad(AioHTTPTestCase):
-    def get_app(self, loop):
-        app = test_app_setup_bad(loop=loop)
-        return app
-
-    def setUp(self):
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-
-    # def test_routes_bad(self):
-    #     try:
-    #         async def test_logout_bad():
-    #             print("\n"+"7: testing a logout attempt, with bad mesage")
-    #             url = "/logout"
-    #             resp = await self.client.request("GET", url)
-    #             self.assertEqual(resp.status, 200)
-    #             print("test successful")
-    #             # this should replace the logged in cookie to the logout cookie
-    #             self.client.session.cookies.update(resp.cookies)
-    #             resp.close()
-    #         self.loop.run_until_complete(test_logout_bad())
-    #     except TypeError:
-    #         print("caught it")
 if __name__ == '__main__':
     unittest.main()

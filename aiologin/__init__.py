@@ -20,7 +20,7 @@ class Signals(list):
 
     def append(self, callback):
         if not asyncio.iscoroutinefunction(callback):
-            raise TypeError("not a cortoute")
+            raise TypeError()
         else:
             self.signals.append(callback)
 
@@ -262,13 +262,11 @@ def secured(func):
             args = (request,) + args
         if request.aiologin.disabled:
             return (yield from func(*args, **kwargs))
-
         user = yield from request.aiologin.auth_by_header()
         if user is None:
             user = yield from request.aiologin.auth_by_session()
         if user is None:
             user = request.aiologin.anonymous_user()
-
         assert isinstance(user, AbstractUser), \
             "Expected 'user' of type AbstractUser by got {}".format(type(user))
 
