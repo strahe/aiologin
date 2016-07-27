@@ -79,7 +79,7 @@ def test_app_setup(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
-        # adding signals
+        # provisional signals
         on_login=[login_message, second_message],
         on_logout=[logout_message],
         on_secured=[secured_message],
@@ -103,6 +103,7 @@ def test_app_setup_bad(loop):
         app=app,
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
+        on_logout=bad_message
     )
     print('app1', id(aiologin))
     app.router.add_route('GET', '/', handler)
@@ -234,5 +235,31 @@ class TestAioLogin(AioHTTPTestCase):
             resp.close()
         self.loop.run_until_complete(test_login_home_route_after_logout())
 
+
+class TestAioLoginBad(AioHTTPTestCase):
+    def get_app(self, loop):
+        app = test_app_setup_bad(loop=loop)
+        return app
+
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+
+    def test_routes_bad(self):
+        try:
+            async def test_logout_bad():
+                print("\n"+"7: testing a logout attempt, with bad mesage")
+                url = "/logout"
+                resp = await self.client.request("GET", url)
+                self.assertEqual(resp.status, 200)
+                print("test successful")
+                # this should replace the logged in cookie to the logout cookie
+                self.client.session.cookies.update(resp.cookies)
+                resp.close()
+            self.loop.run_until_complete(test_logout_bad())
+        except:
+            print("caught it")
 if __name__ == '__main__':
     unittest.main()

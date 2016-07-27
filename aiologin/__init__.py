@@ -19,7 +19,7 @@ class Signals(list):
 
     def append(self, callback):
         if not asyncio.iscoroutinefunction(callback):
-            raise TypeError
+            raise TypeError()
         else:
             super().append(callback)
 
@@ -106,40 +106,57 @@ class AioLogin:
         self._unauthorized = unauthorized
         self._forbidden = forbidden
 
-        if on_login is None:
-            self._on_login = Signals()
-        else:
-            self._on_login = on_login
+        self._on_login = Signals()
+        self._on_logout = Signals()
+        self._on_secured = Signals()
+        self._on_forbidden = Signals()
+        self._on_auth_by_header = Signals()
+        self._on_auth_by_session = Signals()
+        self._on_unauthenticated = Signals()
 
-        if on_logout is None:
-            self._on_logout = Signals()
+        if on_login is not None and isinstance(on_login, list):
+            for callback in on_login:
+                self._on_login.append(callback)
         else:
-            self._on_logout = on_logout
+            raise TypeError()
 
-        if on_secured is None:
-            self._on_secured = Signals()
+        if on_logout is not None and isinstance(on_logout, list):
+            for callback in on_login:
+                self._on_logout.append(callback)
         else:
-            self._on_secured = on_secured
+            raise TypeError()
 
-        if on_forbidden is None:
-            self._on_forbidden = Signals()
+        if on_secured is not None and isinstance(on_secured, list):
+            for callback in on_login:
+                self._on_logout.append(callback)
         else:
-            self._on_forbidden = on_forbidden
+            raise TypeError()
 
-        if on_unauthenticated is None:
-            self._on_unauthenticated = Signals()
+        if on_forbidden is not None and isinstance(on_forbidden, list):
+            for callback in on_login:
+                self._on_forbidden.append(callback)
         else:
-            self._on_unauthenticated = on_unauthenticated
+            raise TypeError()
 
-        if on_auth_by_header is None:
-            self._on_auth_by_header = Signals()
+        if on_auth_by_header is not None and isinstance(on_auth_by_header,list):
+            for callback in on_login:
+                self._on_auth_by_header.append(callback)
         else:
-            self._on_auth_by_header = on_auth_by_header
+            raise TypeError()
 
-        if on_auth_by_session is None:
-            self._on_auth_by_session = Signals()
+        if on_unauthenticated is not None and isinstance(on_unauthenticated,
+                                                         list):
+            for callback in on_login:
+                self._on_unauthenticated.append(callback)
         else:
-            self._on_auth_by_session = on_auth_by_session
+            raise TypeError()
+
+        if on_auth_by_session is not None and isinstance(on_auth_by_session,
+                                                         list):
+            for callback in on_login:
+                self._on_auth_by_session.append(callback)
+        else:
+            raise TypeError()
 
     @asyncio.coroutine
     def login(self, user, remember):
