@@ -58,13 +58,16 @@ def third_message(request):
 def fourth_message(request):
     print("This is message prints for a generic security success")
 
+
 @asyncio.coroutine
 def fifth_message(request):
     print("This is message prints only when auth_by_header was successful")
 
+
 @asyncio.coroutine
 def sixth_message(request):
     print("This is message prints only when auth_by_session was successful")
+
 
 @aiologin.secured
 async def handler(request):

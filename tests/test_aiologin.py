@@ -1,8 +1,9 @@
+import asyncio
 import unittest
 from urllib.parse import parse_qs
 
-from aiohttp import web ,web_reqrep
-from aiohttp.test_utils import AioHTTPTestCase, loop_context
+from aiohttp import web
+from aiohttp.test_utils import AioHTTPTestCase
 from aiohttp_session import session_middleware, SimpleCookieStorage
 
 import aiologin
@@ -25,31 +26,26 @@ class User(aiologin.AbstractUser):
     def forbidden(self):
         return False
 
-    print("User class made")
-
 
 # by default these methods are NUll, but you should override these methods and
 # pass them to the aiologin class. These two methods have sample forms of
 # authorization, but you should have create your own in your own version.
 async def auth_by_header(request, key):
-    print("inside the auth_by_header method")
     if key == '1234567890':
         return User('Test@User.com', 'foobar')
     return None
 
 
 async def auth_by_session(request, profile):
-    print("inside the auth_by_session method")
     if 'email' in profile and profile['email'] == 'Test@User.com' and \
                     'password' in profile and profile['password'] == 'foobar':
         return User(profile['email'], profile['password'])
     return None
 
 
-# this method is not required by the aiologin class, however you might want to
-# use a method like this to authenticate your user
+# this method is not required by the aiologin class, however it is a good idea
+# to use a method like this to authenticate a user
 async def auth_by_form(request, email, password):
-    print("inside the auth_by_forum method")
     if email == 'Test@User.com' and password == 'foobar':
         return User(email, password)
     return None
@@ -57,12 +53,10 @@ async def auth_by_form(request, email, password):
 
 @aiologin.secured
 async def handler(request):
-    print("inside the handler method which is the handler for the '/' route")
     return web.Response(body=b'OK')
 
 
 async def login(request):
-    print("inside the login method which is the handler for the '/login' route")
     args = parse_qs(request.query_string)
     user = await auth_by_form(request, args['email'][0], args['password'][0])
     if user is None:
@@ -73,35 +67,95 @@ async def login(request):
 
 
 async def logout(request):
-    print(
-        "inside the logout method which is the handler for the '/logout' route")
     await request.aiologin.logout()
     return web.Response()
 
 
 def test_app_setup(loop):
-    print("in the init method")
     app = web.Application(loop=loop, middlewares=[
         session_middleware(SimpleCookieStorage())
     ])
     aiologin.setup(
         app=app,
         auth_by_header=auth_by_header,
-        auth_by_session=auth_by_session
+        auth_by_session=auth_by_session,
+        # provisional signals
+        on_login=[login_message, second_login_message],
+        on_logout=[logout_message],
+        on_secured=[secured_message],
+        on_auth_by_session=[auth_by_session_message],
+        on_auth_by_header=[auth_by_header_message],
+        on_forbidden=[forbidden_message],
+        on_unauthenticated=[unauth_message]
     )
+
     app.router.add_route('GET', '/', handler)
     app.router.add_route('GET', '/login', login)
     app.router.add_route('GET', '/logout', logout)
-    print("init is done, loop has been created with all the routes")
     return app
+
+
+def test_app_setup_bad(loop):
+    app = web.Application(loop=loop, middlewares=[
+        session_middleware(SimpleCookieStorage())
+    ])
+    aiologin.setup(
+        app=app,
+        auth_by_header=auth_by_header,
+        auth_by_session=auth_by_session,
+        on_logout=[login_message]
+    )
+    print('app1', id(aiologin))
+    app.router.add_route('GET', '/', handler)
+    app.router.add_route('GET', '/login', login)
+    app.router.add_route('GET', '/logout', logout)
+    return app
+
+
+@asyncio.coroutine
+def login_message():
+    print("signal_login: success")
+
+
+@asyncio.coroutine
+def second_login_message():
+    print("second_login_signal: success")
+
+
+@asyncio.coroutine
+def logout_message():
+    print("signal_logout: success")
+
+
+@asyncio.coroutine
+def secured_message():
+    print("signal_secured: success")
+
+
+@asyncio.coroutine
+def auth_by_header_message():
+    print("signal_auth_by_header: success")
+
+
+@asyncio.coroutine
+def unauth_message():
+    print("signal_unauthorized: success")
+
+
+@asyncio.coroutine
+def forbidden_message():
+    print("signal_forbidden: success")
+
+
+@asyncio.coroutine
+def auth_by_session_message():
+    print("signal_auth_by_session: success")
 
 
 class TestAioLogin(AioHTTPTestCase):
 
     def get_app(self, loop):
         app = test_app_setup(loop=loop)
-        # simple test to make sure we are not getting a null for the app
-        self.assertIsNotNone(app)
         return app
 
     def setUp(self):
@@ -112,75 +166,70 @@ class TestAioLogin(AioHTTPTestCase):
 
     def test_routes(self):
         async def test_home_route_no_login():
-            print("\n"+"1: testing access without logging in"+"\n")
-            print("\n"+"if you get a deprecated warning on using Response."
-                       "Prepared, that's because the use of web_utils is not "
-                       "100% correct by one of the modules we use that in turn "
-                       "are import web_utils "+"\n")
-            # use loop_context because it takes care of the setup and teardown
-            # of the loop once it's done
-            loop = loop_context
+            print("\n"+"1: testing access without logging in")
+            print("if you get a deprecated warning on using Response.Prepared, "
+                  "that's because the use of web_utils is not 100% correct by "
+                  "one of the modules we use that in turn is importing "
+                  "web_utils ")
             url = "/"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 401)
-            text = await resp.text()
-            self.assertEqual(text, "Unauthorized")
+            print("test successful")
             resp.close()
-            print("\n" + "test successful" + "\n")
         self.loop.run_until_complete(test_home_route_no_login())
 
-
         async def test_login_bad():
-            print("\n"+"2: testing a bad login attempt"+"\n")
+            print("\n"+"2: testing a bad login attempt")
             url = "/login?email=BadTest@BadUser.com&password=bad"
+            # this only calls the login method above and returns from there
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 401)
-            resp.close()
             text = await resp.text()
             self.assertEqual(text, "401: Unauthorized")
-            print("\n"+"test successful"+"\n")
+            print("test successful")
+            resp.close()
         self.loop.run_until_complete(test_login_bad())
 
         async def test_login_good():
-            print("\n" + "3: testing a good login attempt" + "\n")
+            print("\n" + "3: testing a good login attempt")
             url = "/login?email=Test@User.com&password=foobar"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 200)
             # the cookie is stored for a home route test later
             self.client.session.cookies.update(resp.cookies)
+            print("test successful")
             resp.close()
-            print("\n" + "test successful" + "\n")
         self.loop.run_until_complete(test_login_good())
 
         async def test_home_route_with_login():
-            print("\n" + "4: testing the home route after a good login" + "\n")
+            print("\n"+"4: testing the home route after a good login")
             url = "/"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 200)
             text = await resp.text()
             self.assertEqual(text, "OK")
-            print("\n" + "test successful" + "\n")
+            print("test successful")
         self.loop.run_until_complete(test_home_route_with_login())
 
         async def test_logout():
-            print("\n" + "5: testing a logout attempt" + "\n")
+            print("\n"+"5: testing a logout attempt")
             url = "/logout"
             resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 200)
-            resp.close()
-            print("\n" + "test successful" + "\n")
-            # this should replace the cookie to the logout cookie
+            print("test successful")
+            # this should replace the logged in cookie to the logout cookie
             self.client.session.cookies.update(resp.cookies)
+            resp.close()
         self.loop.run_until_complete(test_logout())
 
-        async  def test_login_home_route_after_logout():
-            print("\n" + "6: testing access after logging out" + "\n")
-            loop = loop_context
+        async def test_login_home_route_after_logout():
+            print("\n" + "6: testing access after logging out")
             url = "/"
-            resp = await self.client.request("GET", url )
+            resp = await self.client.request("GET", url)
             self.assertEqual(resp.status, 401)
-            text = await resp.text()
-            self.assertEqual(text, "Unauthorized")
+            print("test successful")
+            resp.close()
         self.loop.run_until_complete(test_login_home_route_after_logout())
+
 if __name__ == '__main__':
     unittest.main()
