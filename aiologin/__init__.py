@@ -120,10 +120,10 @@ class AioLogin:
                 self._on_unauthorized.append(sig[1])
 
     @asyncio.coroutine
-    def authenticate(self, remember):
+    def authenticate(self, *args, remember=False, **kwargs):
         assert isinstance(remember, bool), \
             "Expected {!r} but received {!r}".format(type(bool), type(remember))
-        user = yield from self._auth_by_form(self._request)
+        user = yield from self._auth_by_form(self._request, *args, **kwargs)
         if user is None:
             for coro in self._on_unauthorized:
                 yield from coro(self._request)
