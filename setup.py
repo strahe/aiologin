@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='aiologin',
-    version='0.0.3',
+    version='0.0.4',
     description='Project provides login management extension to aiohttp.web',
     long_description='This module provides extension to the aiohttp_session '
                      'and aiohttp.web projects by extending their '
