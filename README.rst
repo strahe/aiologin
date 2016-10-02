@@ -210,7 +210,6 @@ the aiologin setup initialization as follows
         auth_by_header=auth_by_header,
         auth_by_session=auth_by_session,
         signals=[
-            (aiologin.ON_LOGIN, func0),
             (aiologin.ON_LOGIN, func1),
             (aiologin.ON_LOGOUT, func2),
             (aiologin.ON_AUTHENTICATED, func3),
