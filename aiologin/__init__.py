@@ -102,9 +102,8 @@ class AioLogin:
         for sig in signals:
             assert isinstance(sig, Sequence), \
                 "Excepted {!r} but received {!r}".format(Sequence, signals)
-            assert len(sig) == 2 \
-                   and 1 <= sig[0] <= 7 \
-                   and asyncio.iscoroutinefunction(sig[1]), \
+            is_coro = asyncio.iscoroutinefunction(sig[1])
+            assert len(sig) == 2 and 1 <= sig[0] <= 7 and is_coro, \
                 "Incorrectly formatted signal argument {}".format(sig)
 
             if sig[0] == 1:
@@ -169,7 +168,6 @@ class AioLogin:
         user = yield from self._auth_by_session(self._request, profile)
         if user is None:
             return None
-        session.changed()
         return user
 
     @property
