@@ -7,14 +7,13 @@ from aiohttp.web_reqrep import Request
 from aiohttp_session import get_session
 from collections.abc import Sequence
 
-
 AIOLOGIN_KEY = '__aiologin__'
 
-ON_LOGIN                    = 1
-ON_LOGOUT                   = 2
-ON_AUTHENTICATED            = 3
-ON_FORBIDDEN                = 4
-ON_UNAUTHORIZED             = 5
+ON_LOGIN = 1
+ON_LOGOUT = 2
+ON_AUTHENTICATED = 3
+ON_FORBIDDEN = 4
+ON_UNAUTHORIZED = 5
 
 
 class AbstractUser(MutableMapping, metaclass=ABCMeta):
@@ -104,8 +103,8 @@ class AioLogin:
             assert isinstance(sig, Sequence), \
                 "Excepted {!r} but received {!r}".format(Sequence, signals)
             assert len(sig) == 2 \
-                and 1 <= sig[0] <= 7 \
-                and asyncio.iscoroutinefunction(sig[1]), \
+                   and 1 <= sig[0] <= 7 \
+                   and asyncio.iscoroutinefunction(sig[1]), \
                 "Incorrectly formatted signal argument {}".format(sig)
 
             if sig[0] == 1:
@@ -139,7 +138,10 @@ class AioLogin:
         assert isinstance(remember, bool), \
             "Expected {!r} but received {!r}".format(type(bool), type(remember))
         session = yield from self._session(self._request)
-        session['_remember'] = remember
+        try:
+            session.remember = remember
+        except:
+            session['_remember'] = remember
         session[self._session_name] = dict(user)
         for coro in self._on_login:
             yield from coro(self._request)
