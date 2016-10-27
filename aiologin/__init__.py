@@ -220,7 +220,7 @@ def secured(func):
         kwargs = {k: v for (k, v) in kwargs.items() if k != 'request'}
         if not isinstance(request, Request):
             request = args[0].request
-        else:
+        elif request not in args:
             args = (request,) + args
         if request.aiologin.disabled:
             return (yield from func(*args, **kwargs))
