@@ -1,11 +1,11 @@
-#### Files ####
-###############
-settings.ini
+### JetBrains IDE ###
+#####################
+.idea/
+
+### Files ###
+#############
 *.py[cod]
 
 ### Folders ###
 ###############
-.idea/
-build/
-dist/
-aiologin.egg-info/
+__pycache__/
