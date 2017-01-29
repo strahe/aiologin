@@ -206,6 +206,7 @@ def middleware_factory(**options):
 
             manager = options.get('manager', AioLogin)
             request.aiologin = manager(request=request, **options)
+            request.current_user = request.aiologin.anonymous_user
             return (yield from handler(request=request, **kwargs))
 
         return aiologin_handler
